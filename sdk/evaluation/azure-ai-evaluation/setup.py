@@ -13,7 +13,7 @@ import pkg_resources
 from setuptools import find_packages, setup
 
 # Change the PACKAGE_NAME only to change folder and different name
-PACKAGE_NAME = "azure-ai-evaluation"
+PACKAGE_NAME = "azure-ai-evaluation-healthcare"
 PACKAGE_PPRINT_NAME = "Evaluation"
 
 # a-b-c => a/b/c
@@ -41,7 +41,7 @@ setup(
     license="MIT License",
     author="Microsoft Corporation",
     author_email="azuresdkengsysadmins@microsoft.com",
-    url="https://github.com/Azure/azure-sdk-for-python",
+    url="https://github.com/faizc/azure-sdk-for-python",
     keywords="azure, azure sdk",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
