@@ -13,7 +13,7 @@ import pkg_resources
 from setuptools import find_packages, setup
 
 # Change the PACKAGE_NAME only to change folder and different name
-PACKAGE_NAME = "azure-ai-evaluation-healthcare"
+PACKAGE_NAME = "azure-ai-evaluation"
 PACKAGE_PPRINT_NAME = "Evaluation"
 
 # a-b-c => a/b/c
