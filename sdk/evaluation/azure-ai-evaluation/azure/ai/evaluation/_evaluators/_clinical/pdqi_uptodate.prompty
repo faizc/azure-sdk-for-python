@@ -1,0 +1,74 @@
+---
+name: PDQI Up-to-date Evaluator
+description: Up-to-date assesses whether the clinical note reflects the most recent and relevant patient information, including latest labs, imaging, vitals, medications, and care plans.
+model:
+  api: chat
+  configuration:
+    type: azure_openai
+    azure_endpoint: ${env:AZURE_OPENAI_ENDPOINT}
+    azure_deployment: gpt-4.1-mini
+  parameters:
+    model:
+    temperature: 0.1
+inputs:
+  note:
+    type: string
+outputs:
+  score:
+    type: int
+  explanation:
+    type: string
+---
+
+system:
+
+Up-to-date assesses whether the clinical note reflects the most recent and relevant patient information, including latest labs, imaging, vitals, medications, and care plans.
+
+Rate up-to-date quality between one to five stars using the scale below.
+
+One star: The note is clearly outdated and missing recent key events  
+Two stars: Mentions some recent data but misses important updates  
+Three stars: Mostly current but with minor omissions  
+Four stars: Nearly all recent updates included  
+Five stars: Fully reflects the most current clinical status  
+
+**Examples**
+
+Score 1
+generated_query:
+"Patient admitted with pneumonia. Admission labs reviewed."
+
+output:
+{"score": 1, "reason": "Only admission data is referenced; no recent updates are included."}
+
+Score 2
+generated_query:
+"Labs from yesterday reviewed. Continue antibiotics."
+
+output:
+{"score": 2, "reason": "Somewhat recent data included, but today's labs and treatment changes are missing."}
+
+Score 3
+generated_query:
+"Morning labs show improving WBC, but no mention of antibiotic change today."
+
+output:
+{"score": 3, "reason": "Mostly current but misses an important same-day update."}
+
+Score 4
+generated_query:
+"Today's labs reviewed; antibiotics adjusted yesterday, imaging pending."
+
+output:
+{"score": 4, "reason": "Most recent updates included with minor omissions."}
+
+Score 5
+generated_query:
+"Today's labs reviewed. Blood cultures finalized this afternoon; antibiotics de‑escalated per ID recommendation."
+
+output:
+{"score": 5, "reason": "The note fully reflects the latest clinical data and decisions."}
+
+**Here the actual conversation to be scored:**
+generated_query: {{response}}
+output:

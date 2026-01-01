@@ -1,0 +1,51 @@
+---
+name: PDQI Succinct Evaluator
+description: Succinctness assesses whether the note is concise and avoids unnecessary repetition or extraneous details.
+model:
+  api: chat
+  configuration:
+    type: azure_openai
+    azure_endpoint: ${env:AZURE_OPENAI_ENDPOINT}
+    azure_deployment: gpt-4.1-mini
+  parameters:
+    model:
+    temperature: 0.1
+inputs:
+  note:
+    type: string
+outputs:
+  score:
+    type: int
+  explanation:
+    type: string
+---
+
+system:
+
+Succinct assesses whether the note is concise and avoids unnecessary repetition or extraneous details.
+
+Rate the succinctness of the note between one to five stars using the following scale:
+
+One star: Excessively verbose and repetitive  
+Two stars: Significant unnecessary content  
+Three stars: Moderately concise  
+Four stars: Mostly concise with minor redundancy  
+Five stars: Clear, focused, and succinct  
+
+**Example 1**  
+generated_query:  
+"Repeatedly states the patient is stable in every paragraph with no new information."
+
+output:  
+{"score": 1, "reason": "The note contains excessive redundancy without added value."}
+
+**Example 2**  
+generated_query:  
+"Summarizes key findings and plan in brief, focused statements."
+
+output:  
+{"score": 5, "reason": "The note is concise and free of unnecessary repetition."}
+
+**Here the actual conversation to be scored:**  
+generated_query: {{response}}  
+output:

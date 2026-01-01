@@ -1,0 +1,72 @@
+---
+name: PDQI Organized Evaluator
+description: Organization assesses clarity of structure and logical flow.
+model:
+  api: chat
+  configuration:
+    type: azure_openai
+    azure_endpoint: ${env:AZURE_OPENAI_ENDPOINT}
+    azure_deployment: gpt-4.1-mini
+  parameters:
+    model:
+    temperature: 0.1
+inputs:
+  note:
+    type: string
+outputs:
+  score:
+    type: int
+  explanation:
+    type: string
+---
+
+system:
+
+Organization assesses clarity of structure and logical flow.
+
+One star: Disorganized  
+Two stars: Poor structure  
+Three stars: Adequately organized  
+Four stars: Well organized  
+Five stars: Excellent structure  
+
+**Examples**
+
+Score 1
+generated_query:
+"Labs, history, and plan mixed randomly."
+
+output:
+{"score": 1, "reason": "The note lacks structure and is difficult to follow."}
+
+Score 2
+generated_query:
+"Some headers present, information scattered."
+
+output:
+{"score": 2, "reason": "Organization exists but is weak."}
+
+Score 3
+generated_query:
+"SOAP format used with minor repetition."
+
+output:
+{"score": 3, "reason": "Adequately organized."}
+
+Score 4
+generated_query:
+"Clear headers and problem‑based assessments."
+
+output:
+{"score": 4, "reason": "Well structured with minor issues."}
+
+Score 5
+generated_query:
+"Problem‑oriented SOAP note with clear progression."
+
+output:
+{"score": 5, "reason": "Exceptional organization improves readability."}
+
+**Here the actual conversation to be scored:**
+generated_query: {{response}}
+output:

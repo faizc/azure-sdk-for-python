@@ -1,0 +1,51 @@
+---
+name: PDQI Synthesized Evaluator
+description: Synthesized assesses whether the note integrates information into meaningful interpretations rather than listing raw data.
+model:
+  api: chat
+  configuration:
+    type: azure_openai
+    azure_endpoint: ${env:AZURE_OPENAI_ENDPOINT}
+    azure_deployment: gpt-4.1-mini
+  parameters:
+    model:
+    temperature: 0.1
+inputs:
+  note:
+    type: string
+outputs:
+  score:
+    type: int
+  explanation:
+    type: string
+---
+
+system:
+
+Synthesized assesses whether the note integrates information into meaningful interpretations rather than listing raw data.
+
+Rate the level of synthesis in the note between one to five stars using the following scale:
+
+One star: Purely a list of data  
+Two stars: Minimal interpretation  
+Three stars: Some synthesis present  
+Four stars: Good integration of data  
+Five stars: Excellent synthesis and clinical reasoning  
+
+**Example 1**  
+generated_query:  
+"Na 128. K 5.9. Creatinine 2.1. BNP 900."
+
+output:  
+{"score": 1, "reason": "The note lists labs without interpretation or context."}
+
+**Example 2**  
+generated_query:  
+"Rising creatinine and hyponatremia likely reflect worsening volume overload consistent with elevated BNP."
+
+output:  
+{"score": 5, "reason": "The note effectively synthesizes data into a clinical interpretation."}
+
+**Here the actual conversation to be scored:**  
+generated_query: {{response}}  
+output:

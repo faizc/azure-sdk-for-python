@@ -49,7 +49,16 @@ from ._aoai.string_check_grader import AzureOpenAIStringCheckGrader
 from ._aoai.text_similarity_grader import AzureOpenAITextSimilarityGrader
 from ._aoai.score_model_grader import AzureOpenAIScoreModelGrader
 from ._aoai.python_grader import AzureOpenAIPythonGrader
-
+from ._evaluators._clinical import ClinicalSafetyEvaluator
+from ._evaluators._clinical import PDQIUpToDateEvaluator
+from ._evaluators._clinical import PDQIAccurateEvaluator
+from ._evaluators._clinical import PDQIThoroughEvaluator
+from ._evaluators._clinical import PDQIUsefulEvaluator
+from ._evaluators._clinical import PDQIOrganizedEvaluator
+from ._evaluators._clinical import PDQIComprehensibleEvaluator
+from ._evaluators._clinical import PDQISuccinctEvaluator
+from ._evaluators._clinical import PDQISynthesizedEvaluator
+from ._evaluators._clinical import PDQIInternallyConsistentEvaluator
 
 _patch_all = []
 
@@ -141,6 +150,16 @@ __all__ = [
     "AzureOpenAITextSimilarityGrader",
     "AzureOpenAIScoreModelGrader",
     "AzureOpenAIPythonGrader",
+    "ClinicalSafetyEvaluator",
+    "PDQIUpToDateEvaluator",
+    "PDQIAccurateEvaluator",
+    "PDQIThoroughEvaluator",
+    "PDQIUsefulEvaluator",
+    "PDQIOrganizedEvaluator",
+    "PDQIComprehensibleEvaluator",
+    "PDQISuccinctEvaluator",
+    "PDQISynthesizedEvaluator",
+    "PDQIInternallyConsistentEvaluator",
 ]
 
 __all__.extend([p for p in _patch_all if p not in __all__])

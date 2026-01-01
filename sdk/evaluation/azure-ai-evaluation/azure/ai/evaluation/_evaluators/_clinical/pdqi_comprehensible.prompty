@@ -1,0 +1,51 @@
+---
+name: PDQI Comprehensible Evaluator
+description: Comprehensibility assesses how clear and easy the note is to understand, avoiding ambiguous language or confusing phrasing.
+model:
+  api: chat
+  configuration:
+    type: azure_openai
+    azure_endpoint: ${env:AZURE_OPENAI_ENDPOINT}
+    azure_deployment: gpt-4.1-mini
+  parameters:
+    model:
+    temperature: 0.1
+inputs:
+  note:
+    type: string
+outputs:
+  score:
+    type: int
+  explanation:
+    type: string
+---
+
+system:
+
+Comprehensible assesses how clear and easy the note is to understand, avoiding ambiguous language or confusing phrasing.
+
+Rate the comprehensibility of the note between one to five stars using the following scale:
+
+One star: Very difficult to understand  
+Two stars: Frequent ambiguity or unclear phrasing  
+Three stars: Generally understandable with some confusion  
+Four stars: Mostly clear and easy to follow  
+Five stars: Completely clear and unambiguous  
+
+**Example 1**  
+generated_query:  
+"Pt doing better-ish. Labs kinda okay. Plan TBD pending stuff."
+
+output:  
+{"score": 1, "reason": "The informal and vague language makes the note unclear."}
+
+**Example 2**  
+generated_query:  
+"Patient reports improved pain. Labs within normal limits. Plan pending MRI results."
+
+output:  
+{"score": 5, "reason": "The note is clearly written and unambiguous."}
+
+**Here the actual conversation to be scored:**  
+generated_query: {{response}}  
+output:

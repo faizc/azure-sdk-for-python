@@ -1,0 +1,72 @@
+---
+name: PDQI Thoroughness Evaluator
+description: Thoroughness evaluates whether all clinically relevant issues are addressed.
+model:
+  api: chat
+  configuration:
+    type: azure_openai
+    azure_endpoint: ${env:AZURE_OPENAI_ENDPOINT}
+    azure_deployment: gpt-4.1-mini
+  parameters:
+    model:
+    temperature: 0.1
+inputs:
+  note:
+    type: string
+outputs:
+  score:
+    type: int
+  explanation:
+    type: string
+---
+
+system:
+
+Thoroughness evaluates whether all clinically relevant issues are addressed.
+
+One star: Major issues missing  
+Two stars: Several important elements omitted  
+Three stars: Main problem covered, secondary issues incomplete  
+Four stars: Nearly complete coverage  
+Five stars: Fully comprehensive  
+
+**Examples**
+
+Score 1
+generated_query:
+"Admitted with shortness of breath. Plan: monitor."
+
+output:
+{"score": 1, "reason": "Critical diagnostic and management elements are missing."}
+
+Score 2
+generated_query:
+"Shortness of breath assessed; past CHF not addressed."
+
+output:
+{"score": 2, "reason": "Important comorbidity is omitted."}
+
+Score 3
+generated_query:
+"Pneumonia assessed, but CKD and social factors not discussed."
+
+output:
+{"score": 3, "reason": "Core issue addressed but secondary concerns omitted."}
+
+Score 4
+generated_query:
+"Addresses pneumonia, CHF, CKD but lacks discharge planning."
+
+output:
+{"score": 4, "reason": "Nearly complete with minor gaps."}
+
+Score 5
+generated_query:
+"Addresses pneumonia, CHF, CKD, oxygen needs, mobility, and discharge plan."
+
+output:
+{"score": 5, "reason": "All clinically relevant issues are comprehensively documented."}
+
+**Here the actual conversation to be scored:**
+generated_query: {{response}}
+output:

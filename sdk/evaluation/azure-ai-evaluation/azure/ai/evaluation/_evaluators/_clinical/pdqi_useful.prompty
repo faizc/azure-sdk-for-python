@@ -1,0 +1,72 @@
+---
+name: PDQI Usefulness Evaluator
+description: Usefulness measures how actionable and helpful the note is for patient management.
+model:
+  api: chat
+  configuration:
+    type: azure_openai
+    azure_endpoint: ${env:AZURE_OPENAI_ENDPOINT}
+    azure_deployment: gpt-4.1-mini
+  parameters:
+    model:
+    temperature: 0.1
+inputs:
+  note:
+    type: string
+outputs:
+  score:
+    type: int
+  explanation:
+    type: string
+---
+
+system:
+
+Usefulness measures how actionable and helpful the note is for patient management.
+
+One star: Not actionable  
+Two stars: Vague guidance  
+Three stars: Moderately useful  
+Four stars: Very helpful  
+Five stars: Highly actionable  
+
+**Examples**
+
+Score 1
+generated_query:
+"Patient stable. Continue current care."
+
+output:
+{"score": 1, "reason": "No actionable guidance provided."}
+
+Score 2
+generated_query:
+"Monitor labs and reassess."
+
+output:
+{"score": 2, "reason": "Guidance is vague and minimally useful."}
+
+Score 3
+generated_query:
+"Continue antibiotics; reassess tomorrow."
+
+output:
+{"score": 3, "reason": "Moderately helpful but limited."}
+
+Score 4
+generated_query:
+"Switch to oral antibiotics once afebrile for 24 hours."
+
+output:
+{"score": 4, "reason": "Provides clear management guidance."}
+
+Score 5
+generated_query:
+"If afebrile today, transition to PO antibiotics and plan discharge tomorrow."
+
+output:
+{"score": 5, "reason": "Highly actionable and informative."}
+
+**Here the actual conversation to be scored:**
+generated_query: {{response}}
+output:

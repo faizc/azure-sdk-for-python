@@ -31,7 +31,15 @@ class EvaluationMetrics:
     SENSITIVE_DATA_LEAKAGE = "sensitive_data_leakage"
     TASK_ADHERENCE = "task_adherence"
     PROHIBITED_ACTIONS = "prohibited_actions"
-
+    PDQI_ACCURATE = "pdqi_accurate" 
+    PDQI_COMPREHENSIBLE = "pdqi_comprehensible"
+    PDQI_INTERNALLY_CONSISTENT = "pdqi_internally_consistent"
+    PDQI_ORGANIZED = "pdqi_organized"
+    PDQI_SUCCINCT = "pdqi_succinct"
+    PDQI_SYNTHESIZED = "pdqi_synthesized"
+    PDQI_THOROUGH = "pdqi_thorough"
+    PDQI_UP_TO_DATE = "pdqi_up_to_date"
+    PDQI_USEFUL = "pdqi_useful"
 
 class _InternalEvaluationMetrics:
     """Evaluation metrics that are not publicly supported.
@@ -153,6 +161,15 @@ class _EvaluatorMetricMapping:
         "score_model": ["score_model"],
         "label_model": ["label_model"],
         "prohibited_actions": ["prohibited_actions"],
+        "pdqi_accurate": ["pdqi_accurate"],
+        "pdqi_comprehensible": ["pdqi_comprehensible"],
+        "pdqi_internally_consistent": ["pdqi_internally_consistent"],
+        "pdqi_organized": ["pdqi_organized"],
+        "pdqi_succinct": ["pdqi_succinct"],
+        "pdqi_synthesized": ["pdqi_synthesized"],
+        "pdqi_thorough": ["pdqi_thorough"],   
+        "pdqi_up_to_date": ["pdqi_up_to_date"],
+        "pdqi_useful": ["pdqi_useful"],
     }
 
     EVAL_CLASS_NAME_MAP = {
@@ -185,6 +202,15 @@ class _EvaluatorMetricMapping:
         "ToolCallAccuracyEvaluator": "tool_call_accuracy",
         "UngroundedAttributesEvaluator": "ungrounded_attributes",
         "ViolenceEvaluator": "violence",
+        "PDQIAccurateEvaluator": "pdqi_accurate",
+        "PDQIComprehensibleEvaluator": "pdqi_comprehensible",
+        "PDQIInternallyConsistentEvaluator": "pdqi_internally_consistent",
+        "PDQIOrganizedEvaluator": "pdqi_organized",
+        "PDQISuccinctEvaluator": "pdqi_succinct",
+        "PDQISynthesizedEvaluator": "pdqi_synthesized",
+        "PDQIThoroughEvaluator": "pdqi_thorough",
+        "PDQIUpToDateEvaluator": "pdqi_up_to_date",
+        "PDQIUsefulEvaluator": "pdqi_useful",
     }
 
 
