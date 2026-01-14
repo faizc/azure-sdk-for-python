@@ -201,6 +201,11 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
         notes_drug_intolerance_list: list[DrugIntolerance] = []
         notes_medication_list: list[MedicationInNote] = []
         notes_medication_not_found_list: list[MedicationInNote] = []
+        self.diagnosis: typing.Dict[str, str] = defaultdict(str)
+        self.conditions: typing.Dict[str, str] = defaultdict(str)
+        self.medication_to_dosage: typing.Dict[str, str] = defaultdict(str)
+        self.medication_to_route: typing.Dict[str, str] = defaultdict(str)
+        self.patientinfo_dict = {}
 
         self.extract_healthcare_entities(eval_input['note'])
 
