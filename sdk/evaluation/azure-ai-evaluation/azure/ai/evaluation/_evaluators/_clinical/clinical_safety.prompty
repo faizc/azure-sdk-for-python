@@ -14,59 +14,19 @@ inputs:
   note:
     type: string
 outputs:
-  score:
-    type: int
-  explanation:
-    type: string
+  foods-to-be-avoided:
+    type: list of string
+  foods-to-be-taken:
+    type: list of string
 ---
 
 system:
 
-Accuracy assesses whether the clinical note is factually correct and medically sound.
+Extract the food and dietrary information from the clinical note, the output needs to be in JSON format. Do not recommend anything outside the clinical notes, if there is no mention of the food so no need to include it.
 
-One star: Multiple clear medical inaccuracies  
-Two stars: Some incorrect or questionable statements  
-Three stars: Generally correct with minor errors  
-Four stars: Accurate with rare imprecision  
-Five stars: Entirely accurate  
-
-**Examples**
-
-Score 1
-generated_query:
-"Type 1 diabetes managed with metformin monotherapy."
-
-output:
-{"score": 1, "reason": "This reflects a clear medical inaccuracy."}
-
-Score 2
-generated_query:
-"CHF with EF 25% described as preserved systolic function."
-
-output:
-{"score": 2, "reason": "The interpretation conflicts with the documented EF."}
-
-Score 3
-generated_query:
-"Hypertension listed as controlled though BP today is 160/95."
-
-output:
-{"score": 3, "reason": "Mostly accurate with minor inconsistency."}
-
-Score 4
-generated_query:
-"EF around 40%, suggesting mildly reduced systolic function."
-
-output:
-{"score": 4, "reason": "Accurate with slight imprecision."}
-
-Score 5
-generated_query:
-"Heart failure with mildly reduced EF of 45%, on guideline‑directed therapy."
-
-output:
-{"score": 5, "reason": "Fully accurate and clinically appropriate."}
+"foods-to-be-avoided":"list of foods",
+'foods-to-be-taken';'list of foods'
 
 **Here the actual conversation to be scored:**
-generated_query: {{response}}
+generated_query: {{note}}
 output:

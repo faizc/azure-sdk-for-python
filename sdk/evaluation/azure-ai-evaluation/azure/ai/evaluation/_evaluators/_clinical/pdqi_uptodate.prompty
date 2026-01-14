@@ -70,5 +70,5 @@ output:
 {"score": 5, "reason": "The note fully reflects the latest clinical data and decisions."}
 
 **Here the actual conversation to be scored:**
-generated_query: {{response}}
+generated_query: {{note}}
 output:

@@ -68,5 +68,5 @@ output:
 {"score": 5, "reason": "All clinically relevant issues are comprehensively documented."}
 
 **Here the actual conversation to be scored:**
-generated_query: {{response}}
+generated_query: {{note}}
 output:

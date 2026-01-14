@@ -68,5 +68,5 @@ output:
 {"score": 5, "reason": "Exceptional organization improves readability."}
 
 **Here the actual conversation to be scored:**
-generated_query: {{response}}
+generated_query: {{note}}
 output:

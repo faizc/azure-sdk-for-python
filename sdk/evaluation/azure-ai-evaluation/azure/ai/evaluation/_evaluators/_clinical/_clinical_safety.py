@@ -263,18 +263,19 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
 
         result = await self._flow(timeout=self._LLM_CALL_TIMEOUT, **eval_input)
         llm_output = json.loads(result.get("llm_output"))
-        score = math.nan
+        print(f"foods-to-be-avoided: {llm_output['foods-to-be-avoided']} - foods-to-be-taken: {llm_output['foods-to-be-taken']}")
+        print(f"llm_output: {llm_output}")
         
         if isinstance(llm_output, dict):
-            score = float(llm_output.get("score", math.nan))
-            reason = llm_output.get("reason", "")
+            #score = float(llm_output.get("score", math.nan))
+            #reason = llm_output.get("reason", "")
             # Parse out score and reason from evaluators known to possess them.
-            binary_result = self._get_binary_result(score)
+            #binary_result = self._get_binary_result(score)
             return {
-                self._result_key: float(score),
+            #    self._result_key: float(score),
                 f"{self._result_key}_intolerance_list": notes_drug_intolerance_list,
-                f"{self._result_key}_result": binary_result,
-                f"{self._result_key}_reason": reason,
+            #    f"{self._result_key}_result": binary_result,
+            #    f"{self._result_key}_reason": reason,
                 f"{self._result_key}_prompt_tokens": result.get("input_token_count", 0),
                 f"{self._result_key}_completion_tokens": result.get("output_token_count", 0),
                 f"{self._result_key}_total_tokens": result.get("total_token_count", 0),

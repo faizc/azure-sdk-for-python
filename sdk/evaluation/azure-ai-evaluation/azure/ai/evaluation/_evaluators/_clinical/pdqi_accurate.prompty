@@ -68,5 +68,5 @@ output:
 {"score": 5, "reason": "Fully accurate and clinically appropriate."}
 
 **Here the actual conversation to be scored:**
-generated_query: {{response}}
+generated_query: {{note}}
 output:

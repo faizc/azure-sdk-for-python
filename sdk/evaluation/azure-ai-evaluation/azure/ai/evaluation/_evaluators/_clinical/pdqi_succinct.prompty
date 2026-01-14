@@ -47,5 +47,5 @@ output:
 {"score": 5, "reason": "The note is concise and free of unnecessary repetition."}
 
 **Here the actual conversation to be scored:**  
-generated_query: {{response}}  
+generated_query: {{note}}  
 output:
