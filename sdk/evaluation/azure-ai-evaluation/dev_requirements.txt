@@ -13,3 +13,5 @@ filelock
 promptflow-core>=1.17.1
 promptflow-devkit>=1.17.1
 -e ../azure-ai-evaluation[redteam]
+quantulum3
+azure-ai-textanalytics==6.0.0b1

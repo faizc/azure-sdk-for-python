@@ -11,6 +11,7 @@ from ._pdqi_comprehensible import PDQIComprehensibleEvaluator
 from ._pdqi_succinct import PDQISuccinctEvaluator
 from ._pdqi_synthesized import PDQISynthesizedEvaluator
 from ._pdqi_internally_consistent import PDQIInternallyConsistentEvaluator
+from ._clinical_safety import ClinicalSafetyEvaluator
 
 __all__ = [
     "PDQIUpToDateEvaluator",
@@ -22,4 +23,5 @@ __all__ = [
     "PDQISuccinctEvaluator",
     "PDQISynthesizedEvaluator",
     "PDQIInternallyConsistentEvaluator",
+    "ClinicalSafetyEvaluator",
 ]

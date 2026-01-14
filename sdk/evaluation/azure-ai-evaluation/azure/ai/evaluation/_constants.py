@@ -40,6 +40,7 @@ class EvaluationMetrics:
     PDQI_THOROUGH = "pdqi_thorough"
     PDQI_UP_TO_DATE = "pdqi_up_to_date"
     PDQI_USEFUL = "pdqi_useful"
+    CLINICAL_SAFETY = "clinical_safety"
 
 class _InternalEvaluationMetrics:
     """Evaluation metrics that are not publicly supported.
@@ -170,6 +171,7 @@ class _EvaluatorMetricMapping:
         "pdqi_thorough": ["pdqi_thorough"],   
         "pdqi_up_to_date": ["pdqi_up_to_date"],
         "pdqi_useful": ["pdqi_useful"],
+        "clinical_safety": ["clinical_safety"],
     }
 
     EVAL_CLASS_NAME_MAP = {
@@ -211,6 +213,7 @@ class _EvaluatorMetricMapping:
         "PDQIThoroughEvaluator": "pdqi_thorough",
         "PDQIUpToDateEvaluator": "pdqi_up_to_date",
         "PDQIUsefulEvaluator": "pdqi_useful",
+        "ClinicalSafetyEvaluator": "clinical_safety",
     }
 
 
