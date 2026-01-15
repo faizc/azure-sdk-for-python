@@ -226,9 +226,22 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
                 notes_medication_not_found_list.append(MedicationInNote(drugbank_id='NA', medication=medication_name, dosage=dosage_in_text))
                 print(f"Medication '{medication_name}' not found in medication lookup.")
 
+        medication_not_found_str = ''
+        medication_found_str = ''
+        drug_dosage_validation_count = 0
+        drug_dosage_route_validation_count = 0
+        drug_interaction_reason = ''
+        food_interaction_reason = ''
+        drug_interaction_score = 0
+        food_interaction_score = 0
+        drug_interaction_count = 0
+        total_drugs_identified = len(notes_medication_list) + len(notes_medication_not_found_list)
+        
         for medication in notes_medication_list:
+            medication_found_str += f"- Drug Name: {medication.medication}, Dosage: {medication.dosage}\n"
             print(f"Medication Found - DrugBank ID: {medication.drugbank_id}, Name: {medication.medication}, Dosage: {medication.dosage}")
         for medication in notes_medication_not_found_list:
+            medication_not_found_str += f"- Drug Name: {medication.medication}, Dosage: {medication.dosage}\n"
             print(f"Medication Not Found - Name: {medication.medication}, Dosage: {medication.dosage}")
 
         for medication in notes_medication_list:
@@ -238,16 +251,19 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
             medication2 = None
             status2 = MatchStatus.NONE
             if status1 != MatchStatus.NONE:
+                drug_dosage_validation_count += 1
                 medication2, status2 = self.drugBankAPI.validate_route(medication=medication1, expected_route=self.medication_to_route.get(medication.medication, ""))
+                if status2 != MatchStatus.NONE:
+                    drug_dosage_route_validation_count += 1
             print(f"{YELLOW}Route validation for {medication.medication}: Status - {status2}, Medication Info - {medication2}{RESET}")
-            #print(f"DrugBank Medication Dosage Info {drugbank_medication_list[medication.medication.lower()]}")
-            #print(f"check_dosage_match result: {check_dosage_match(medication.dosage, drugbank_medication_list[medication.medication.lower()])}")
-            #print(f"medication_to_route {medication_to_route[medication.medication.lower()]}")
-            #print(medication_to_route)
 
         # drug-drug compliance check
         output = self.drugBankAPI.validate_drug_drug_compliance(notes_medication_list=notes_medication_list, notes_diagnosis=self.diagnosis, notes_conditions=self.conditions, model_config=self.model_config)
         print(f'{YELLOW}validate_drug_drug_compliance output : {output}{RESET}')
+        if output is not None:
+            drug_interaction_score = output.score
+            drug_interaction_reason = output.reason
+            drug_interaction_count = 0
 
         #drug-to-food compliance check
         result = await self._flow(timeout=self._LLM_CALL_TIMEOUT, **eval_input)
@@ -258,17 +274,64 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
 
         output = self.drugBankAPI.validate_food_drug_compliance(notes_medication_list=notes_medication_list, food_to_be_avoided=food_to_be_avoided, food_to_be_taken=food_to_be_taken, model_config=self.model_config)
         print(f'{YELLOW}validate_food_drug_compliance output : {output}{RESET}')
+        if output is not None:
+            food_interaction_score = output.score
+            food_interaction_reason = output.reason
+
+        drug_validation_score = (
+            (drug_dosage_validation_count / total_drugs_identified)# * 100
+            if total_drugs_identified > 0 else 0
+        )
+
+        drug_route_validation_score = (
+            (drug_dosage_route_validation_count / total_drugs_identified) #* 100
+            if total_drugs_identified > 0 else 0
+        )
+
+        final_score = (
+            0.4 * drug_validation_score +
+            0.4 * drug_route_validation_score +
+            0.1 * (drug_interaction_score/3) +
+            0.1 * (food_interaction_score/3)
+        )
+
+        reason = f'''
+        -------------------------------------------
+        Drug Databases Referred : [DrugBank]
+        -------------------------------------------
+        Drugs Not Found/Validated :
+        {medication_not_found_str}
+        -------------------------------------------
+        Drugs Found :
+        {medication_found_str}
+        -------------------------------------------
+        
+        Total Drugs identified in the note : {len(notes_medication_list)+len(notes_medication_not_found_list)}
+        Drug Dosage Validation Score : {drug_validation_score}
+        Drug Dosage Validation Count : {drug_dosage_validation_count}
+
+        Drug Dosage Route Validation Score : {drug_route_validation_score}
+        Drug Dosage Route Validation Count : {drug_dosage_route_validation_count}       
+
+        Drug Interactions Score : {drug_interaction_score}
+        Drug Interactions Count : {drug_interaction_count}
+        Drug Intolerances Reason : {drug_interaction_reason}
+
+        Food Interactions Score : {food_interaction_score}
+        Food Interactions Reason : {food_interaction_reason}
+
+        Final Clinical Safety Score : {final_score}
+        -------------------------------------------
+        '''
+        print(reason)
+        print(final_score)
 
         if isinstance(llm_output, dict):
-            #score = float(llm_output.get("score", math.nan))
-            #reason = llm_output.get("reason", "")
-            # Parse out score and reason from evaluators known to possess them.
-            #binary_result = self._get_binary_result(score)
+            binary_result = self._get_binary_result(final_score)
             return {
-            #    self._result_key: float(score),
-                f"{self._result_key}_intolerance_list": notes_drug_intolerance_list,
-            #    f"{self._result_key}_result": binary_result,
-            #    f"{self._result_key}_reason": reason,
+                self._result_key: float(final_score),
+                f"{self._result_key}_result": binary_result,
+                f"{self._result_key}_reason": reason,
                 f"{self._result_key}_prompt_tokens": result.get("input_token_count", 0),
                 f"{self._result_key}_completion_tokens": result.get("output_token_count", 0),
                 f"{self._result_key}_total_tokens": result.get("total_token_count", 0),
@@ -281,8 +344,8 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
         if logger:
             logger.warning("LLM output is not a dictionary, returning NaN for the score.")
 
-        binary_result = self._get_binary_result(score)
+        binary_result = self._get_binary_result(final_score)
         return {
-            self._result_key: float(score),
+            self._result_key: float(final_score),
             f"{self._result_key}_result": binary_result,
         }    
