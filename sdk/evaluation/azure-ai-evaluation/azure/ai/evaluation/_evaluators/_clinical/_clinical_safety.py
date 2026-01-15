@@ -245,34 +245,19 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
             #print(f"medication_to_route {medication_to_route[medication.medication.lower()]}")
             #print(medication_to_route)
 
-        for i in range(len(notes_medication_list)):
-            for j in range(i + 1, len(notes_medication_list)):
-                print(notes_medication_list[i], notes_medication_list[j])
-                drug_info = self.drugBankAPI.drug_info_lookup[notes_medication_list[i].drugbank_id]
-                if notes_medication_list[i].drugbank_id in self.drugBankAPI.drug_intolerance_lookup[notes_medication_list[j].drugbank_id]:   
-                    print(f"  Found drug intolerance between {notes_medication_list[i].medication} and {notes_medication_list[j].medication}")
-                    print(f"  Drug Intolerance Info: {self.drugBankAPI.drug_intolerance_description[f'{notes_medication_list[i].drugbank_id}_{notes_medication_list[j].drugbank_id}']}")
-                    notes_drug_intolerance_list.append(DrugIntolerance(
-                        drugbank_id=notes_medication_list[i].drugbank_id,
-                        drug_name=notes_medication_list[i].medication,
-                        intolerance_drugbank_id=notes_medication_list[j].drugbank_id,
-                        intolerance_drug_name=notes_medication_list[j].medication,
-                        description=self.drugBankAPI.drug_intolerance_description[f"{notes_medication_list[i].drugbank_id}_{notes_medication_list[j].drugbank_id}"]
-                    ))
-
-        print(f"notes_drug_intolerance_list:{notes_drug_intolerance_list}")
-        print(f"Diagnosis mapping:{self.diagnosis}")
-        print(f"Conditions mapping:{self.conditions}")   
-        print(f'self.patientinfo_dict : {self.patientinfo_dict}')
-
+        # drug-drug compliance check
         output = self.drugBankAPI.validate_drug_drug_compliance(notes_medication_list=notes_medication_list, notes_diagnosis=self.diagnosis, notes_conditions=self.conditions, model_config=self.model_config)
         print(f'{YELLOW}validate_drug_drug_compliance output : {output}{RESET}')
 
-
+        #drug-to-food compliance check
         result = await self._flow(timeout=self._LLM_CALL_TIMEOUT, **eval_input)
         llm_output = json.loads(result.get("llm_output"))
-        print(f"foods-to-be-avoided: {llm_output['foods-to-be-avoided']} - foods-to-be-taken: {llm_output['foods-to-be-taken']}")
-        print(f"llm_output: {llm_output}")
+        food_to_be_avoided = llm_output.get("foods-to-be-avoided", [])
+        food_to_be_taken = llm_output.get("foods-to-be-taken", [])
+        print(f"foods-to-be-avoided: {food_to_be_avoided} - foods-to-be-taken: {food_to_be_taken}")
+
+        output = self.drugBankAPI.validate_food_drug_compliance(notes_medication_list=notes_medication_list, food_to_be_avoided=food_to_be_avoided, food_to_be_taken=food_to_be_taken, model_config=self.model_config)
+        print(f'{YELLOW}validate_food_drug_compliance output : {output}{RESET}')
 
         if isinstance(llm_output, dict):
             #score = float(llm_output.get("score", math.nan))
