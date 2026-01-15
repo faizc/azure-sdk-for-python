@@ -238,10 +238,10 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
         total_drugs_identified = len(notes_medication_list) + len(notes_medication_not_found_list)
         
         for medication in notes_medication_list:
-            medication_found_str += f"- Drug Name: {medication.medication}, Dosage: {medication.dosage}\n"
+            medication_found_str += f"\n\t- Drug Name: {medication.medication}, Dosage: {medication.dosage}"
             print(f"Medication Found - DrugBank ID: {medication.drugbank_id}, Name: {medication.medication}, Dosage: {medication.dosage}")
         for medication in notes_medication_not_found_list:
-            medication_not_found_str += f"- Drug Name: {medication.medication}, Dosage: {medication.dosage}\n"
+            medication_not_found_str += f"\n\t- Drug Name: {medication.medication}, Dosage: {medication.dosage}"
             print(f"Medication Not Found - Name: {medication.medication}, Dosage: {medication.dosage}")
 
         for medication in notes_medication_list:
@@ -299,11 +299,9 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
         -------------------------------------------
         Drug Databases Referred : [DrugBank]
         -------------------------------------------
-        Drugs Not Found/Validated :
-        {medication_not_found_str}
+        Drugs Not Found/Validated : {medication_not_found_str}
         -------------------------------------------
-        Drugs Found :
-        {medication_found_str}
+        Drugs Found : {medication_found_str}
         -------------------------------------------
         
         Total Drugs identified in the note : {len(notes_medication_list)+len(notes_medication_not_found_list)}
