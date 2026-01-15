@@ -19,7 +19,7 @@ from azure.ai.textanalytics.models import (
 )
 from azure.core.credentials import AzureKeyCredential
 from dataclasses import dataclass, asdict
-from drugapp import DrugBankAPI, DrugProviderRegistry, MedicationInNote, DrugIntolerance, Medication, MatchStatus
+from drugapp import DrugBankAPI, DrugProviderRegistry, MedicationInNote, DrugIntolerance, Medication, MatchStatus, LLMOutputEvent
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +34,10 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
     medication_to_dosage: typing.Dict[str, str] = defaultdict(str)
     medication_to_route: typing.Dict[str, str] = defaultdict(str)
     patientinfo_dict = {}
-    drugBankAPI:DrugBankAPI = DrugProviderRegistry.get("drugbank")
+    drugBankAPI:DrugBankAPI = None
     text_analytics_endpoint = None  
     text_analytics_credentials = None
+    model_config = None
 
     @override
     def __init__(self, model_config, *, credential=None, threshold=3, **kwargs):
@@ -46,6 +47,7 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
         self.text_analytics_credentials = AzureKeyCredential(model_config['text_analytics_key'])
         model_config.pop('text_analytics_endpoint', None)
         model_config.pop('text_analytics_key', None)
+        self.model_config = model_config
         super().__init__(
             model_config=model_config,
             prompty_file=prompty_path,
@@ -206,7 +208,9 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
         self.medication_to_dosage: typing.Dict[str, str] = defaultdict(str)
         self.medication_to_route: typing.Dict[str, str] = defaultdict(str)
         self.patientinfo_dict = {}
-
+        # Loads the drugbank database API
+        self.drugBankAPI = DrugProviderRegistry.get("drugbank")
+        # Extract healthcare entities from the clinical note
         self.extract_healthcare_entities(eval_input['note'])
 
         for medication_name, dosage_in_text in self.medication_to_dosage.items():
@@ -261,11 +265,15 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
         print(f"Conditions mapping:{self.conditions}")   
         print(f'self.patientinfo_dict : {self.patientinfo_dict}')
 
+        output = self.drugBankAPI.validate_drug_drug_compliance(notes_medication_list=notes_medication_list, notes_diagnosis=self.diagnosis, notes_conditions=self.conditions, model_config=self.model_config)
+        print(f'{YELLOW}validate_drug_drug_compliance output : {output}{RESET}')
+
+
         result = await self._flow(timeout=self._LLM_CALL_TIMEOUT, **eval_input)
         llm_output = json.loads(result.get("llm_output"))
         print(f"foods-to-be-avoided: {llm_output['foods-to-be-avoided']} - foods-to-be-taken: {llm_output['foods-to-be-taken']}")
         print(f"llm_output: {llm_output}")
-        
+
         if isinstance(llm_output, dict):
             #score = float(llm_output.get("score", math.nan))
             #reason = llm_output.get("reason", "")
