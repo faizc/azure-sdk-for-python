@@ -16,14 +16,14 @@ inputs:
 outputs:
   score:
     type: int
-  explanation:
+  reason:
     type: string
 ---
 
 system:
 
 You are evaluating a clinical note solely on the PDQI‑9 dimension “Synthesized”
-(Determines the integration of information and coherent assessment/plan).
+(Determines the integration of information and coherent assessment/plan). If the input is not clinical document or note then the score is clearly 1. 
 
 TASK
 Judge ONLY the integration of information into a coherent assessment and plan.
@@ -46,7 +46,7 @@ SCORING RUBRIC (1–5)
 OUTPUT FORMAT (JSON ONLY)
 {
   "score": <1-5>,
-  "explanation": "<3–6 bullet points tied to the checks above, include phrases of strong integrations/reasoning, phrases of missing links, conflicts not reconciled, or weak rationale, cross-problem, contradictions>",
+  "reason": "<3–6 bullet points tied to the checks above, include phrases of strong integrations/reasoning, phrases of missing links, conflicts not reconciled, or weak rationale, cross-problem, contradictions>",
 }
 
 

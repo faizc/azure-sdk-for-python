@@ -16,15 +16,14 @@ inputs:
 outputs:
   score:
     type: int
-  explanation:
+  reason:
     type: string
 ---
 
 system:
 
-
 You are evaluating a clinical note solely on the PDQI‑9 dimension “Organized”
-(Measures the logical structure and arrangement of the note).
+(Measures the logical structure and arrangement of the note). If the input is not clinical document or note then the score is clearly 1. 
 
 TASK
 1) Read the note’s structure and layout.
@@ -49,7 +48,7 @@ SCORING RUBRIC (1–5)
 OUTPUT FORMAT (JSON ONLY)
 {
   "score": <1-5>,
-  "explanation": "<3–6 bullet points tied to the checks above, include things done well, issues or confusions, concrete re-organization tips>",
+  "reason": "<3–6 bullet points tied to the checks above, include things done well, issues or confusions, concrete re-organization tips>",
 }
 
 **Examples**

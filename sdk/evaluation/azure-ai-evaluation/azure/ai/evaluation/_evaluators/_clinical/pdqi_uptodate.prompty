@@ -16,14 +16,13 @@ inputs:
 outputs:
   score:
     type: int
-  explanation:
+  reason:
     type: string
 ---
 
 system:
 
-
-You are evaluating a clinical note solely on the PDQI‑9 dimension “Up‑to‑date” (Does the note reflect inclusion of the most recent patient information?).
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Up‑to‑date” (Does the note reflect inclusion of the most recent patient information?). If the input is not clinical document or note then the score is clearly 1. 
 
 TASK
 1) Read the clinical note.
@@ -50,7 +49,7 @@ OUTPUT FORMAT (JSON)
 Return only valid JSON with these fields:
 {
   "score": <integer 1-5>,
-  "explanation": "<3-6 bullet points explaining the score tied to the checks above and include any outdated or missing text or any condradictions>",
+  "reason": "<3-6 bullet points explaining the score tied to the checks above and include any outdated or missing text or any condradictions>",
 }
 
 **Examples**

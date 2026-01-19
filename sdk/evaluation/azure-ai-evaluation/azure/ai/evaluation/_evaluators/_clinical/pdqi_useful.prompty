@@ -16,15 +16,13 @@ inputs:
 outputs:
   score:
     type: int
-  explanation:
+  reason:
     type: string
 ---
 
 system:
 
-
-You are evaluating a clinical note solely on the PDQI‑9 dimension “Useful”
-(Judges the relevance and value of the information for clinical decision-making).
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Useful” (Judges the relevance and value of the information for clinical decision-making). If the input is not clinical document or note then the score is clearly 1. 
 
 TASK
 1) Read the clinical note.
@@ -49,7 +47,7 @@ SCORING RUBRIC (1–5)
 OUTPUT FORMAT (JSON ONLY)
 {
   "score": <1-5>,
-  "explanation": "<3–6 bullet points tied to the checks above, content that improved decision-making, include irrelevant/redundant/unclear content and missing actions/owners/timing/thresholds>",
+  "reason": "<3–6 bullet points tied to the checks above, content that improved decision-making, include irrelevant/redundant/unclear content and missing actions/owners/timing/thresholds>",
 }
 
 **Examples**

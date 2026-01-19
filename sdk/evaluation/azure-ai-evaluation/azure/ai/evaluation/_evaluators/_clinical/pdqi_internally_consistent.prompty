@@ -16,14 +16,14 @@ inputs:
 outputs:
   score:
     type: int
-  explanation:
+  reason:
     type: string
 ---
 
 system:
 
 You are evaluating a clinical note solely on the PDQI‑9 dimension “Internally Consistent”
-(Checks for contradictions within the note).
+(Checks for contradictions within the note). If the input is not clinical document or note then the score is clearly 1. 
 
 TASK
 Judge ONLY whether the note contains internal contradictions or logical conflicts.
@@ -46,7 +46,7 @@ SCORING RUBRIC (1–5)
 OUTPUT FORMAT (JSON ONLY)
 {
   "score": <1-5>,
-  "explanation": "<3–6 bullet points tied to the checks above, include phrases of specific conflicts, phrases that could be read in conflicting ways>",
+  "reason": "<3–6 bullet points tied to the checks above, include phrases of specific conflicts, phrases that could be read in conflicting ways>",
 }
 
 **Example 1**  

@@ -16,15 +16,14 @@ inputs:
 outputs:
   score:
     type: int
-  explanation:
+  reason:
     type: string
 ---
 
 system:
 
-
 You are evaluating a clinical note solely on the PDQI‑9 dimension “Thorough”
-(Evaluates the completeness of the note in addressing relevant patient issues).
+(Evaluates the completeness of the note in addressing relevant patient issues). If the input is not clinical document or note then the score is clearly 1. 
 
 TASK
 1) Read the clinical note.
@@ -50,7 +49,7 @@ SCORING RUBRIC (1–5)
 OUTPUT FORMAT (JSON ONLY)
 {
   "score": <integer 1-5>,
-  "explanation": "<3-6 bullet points tied to the checks above, include missing or thin areas, key areas the notes covered well>",
+  "reason": "<3-6 bullet points tied to the checks above, include missing or thin areas, key areas the notes covered well>",
 }
 
 **Examples**

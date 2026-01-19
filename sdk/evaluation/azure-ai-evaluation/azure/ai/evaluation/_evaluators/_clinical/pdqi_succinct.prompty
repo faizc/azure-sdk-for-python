@@ -16,14 +16,14 @@ inputs:
 outputs:
   score:
     type: int
-  explanation:
+  reason:
     type: string
 ---
 
 system:
 
 You are evaluating a clinical note solely on the PDQI‑9 dimension “Succinct”
-(Evaluates conciseness and avoidance of redundancy).
+(Evaluates conciseness and avoidance of redundancy). If the input is not clinical document or note then the score is clearly 1. 
 
 TASK
 Judge ONLY the conciseness and signal-to-noise ratio of the note.
@@ -46,7 +46,7 @@ SCORING RUBRIC (1–5)
 OUTPUT FORMAT (JSON ONLY)
 {
   "score": <1-5>,
-  "explanation": "<3–6 bullet points referencing the checks above, include phrases or sections that were verbose or redundant and phrases demonstrating succinct communication >",
+  "reason": "<3–6 bullet points referencing the checks above, include phrases or sections that were verbose or redundant and phrases demonstrating succinct communication >",
 }
 
 **Example 1**  

@@ -16,15 +16,14 @@ inputs:
 outputs:
   score:
     type: int
-  explanation:
+  reason:
     type: string
 ---
 
 system:
 
-
 You are evaluating a clinical note solely on the PDQI‑9 dimension “Comprehensible”
-(Assesses the clarity and ease of understanding).
+(Assesses the clarity and ease of understanding). If the input is not clinical document or note then the score is clearly 1. 
 
 TASK
 Judge ONLY clarity/readability, not factual correctness or completeness.
@@ -47,7 +46,7 @@ SCORING RUBRIC (1–5)
 OUTPUT FORMAT (JSON ONLY)
 {
   "score": <1-5>,
-  "explanation": "<3–6 bullet points tied to the checks above, include phrases of what improved clarity, phrases of ambiguous/dense/confusing phrasing>",
+  "reason": "<3–6 bullet points tied to the checks above, include phrases of what improved clarity, phrases of ambiguous/dense/confusing phrasing>",
 }
 
 **Example 1**  
