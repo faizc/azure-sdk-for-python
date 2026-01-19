@@ -43,13 +43,14 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
     def __init__(self, model_config, *, credential=None, threshold=3, **kwargs):
         current_dir = os.path.dirname(__file__)
         prompty_path = os.path.join(current_dir, self._PROMPTY_FILE)
+        model_config_copy = model_config.copy()
         self.text_analytics_endpoint = model_config['text_analytics_endpoint']
         self.text_analytics_credentials = AzureKeyCredential(model_config['text_analytics_key'])
-        model_config.pop('text_analytics_endpoint', None)
-        model_config.pop('text_analytics_key', None)
-        self.model_config = model_config
+        model_config_copy.pop('text_analytics_endpoint', None)
+        model_config_copy.pop('text_analytics_key', None)
+        self.model_config = model_config_copy
         super().__init__(
-            model_config=model_config,
+            model_config=model_config_copy,
             prompty_file=prompty_path,
             result_key=self._RESULT_KEY,
             threshold=threshold,
@@ -210,6 +211,7 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
         self.patientinfo_dict = {}
         # Loads the drugbank database API
         self.drugBankAPI = DrugProviderRegistry.get("drugbank")
+        print(f'\n{BLUE} eval_input : {eval_input}{RESET}\n')
         # Extract healthcare entities from the clinical note
         self.extract_healthcare_entities(eval_input['note'])
 
@@ -296,7 +298,6 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
         )
 
         reason = f'''
-        -------------------------------------------
         Drug Databases Referred : [DrugBank]
         -------------------------------------------
         Drugs Not Found/Validated : {medication_not_found_str}
@@ -330,13 +331,6 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
                 self._result_key: float(final_score),
                 f"{self._result_key}_result": binary_result,
                 f"{self._result_key}_reason": reason,
-                f"{self._result_key}_prompt_tokens": result.get("input_token_count", 0),
-                f"{self._result_key}_completion_tokens": result.get("output_token_count", 0),
-                f"{self._result_key}_total_tokens": result.get("total_token_count", 0),
-                f"{self._result_key}_finish_reason": result.get("finish_reason", ""),
-                f"{self._result_key}_model": result.get("model_id", ""),
-                f"{self._result_key}_sample_input": result.get("sample_input", ""),
-                f"{self._result_key}_sample_output": result.get("sample_output", ""),
             }
 
         if logger:
