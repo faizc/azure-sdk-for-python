@@ -22,50 +22,117 @@ outputs:
 
 system:
 
-Thoroughness evaluates whether all clinically relevant issues are addressed.
 
-One star: Major issues missing  
-Two stars: Several important elements omitted  
-Three stars: Main problem covered, secondary issues incomplete  
-Four stars: Nearly complete coverage  
-Five stars: Fully comprehensive  
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Thorough”
+(Evaluates the completeness of the note in addressing relevant patient issues).
+
+TASK
+1) Read the clinical note.
+2) (Optional) Consider the reference snapshot that lists known active problems, recent key results, and active orders (if provided).
+3) Judge the note ONLY on completeness (thoroughness) of addressing relevant issues.
+
+WHAT TO CHECK (Thoroughness/Completeness)
+- Problem coverage: Are all active/relevant problems identified and addressed with an assessment and plan?
+- Pertinent data: Does the note include focused HPI/context, targeted exam, relevant labs/imaging with brief interpretation?
+- Plan specificity: Are plans problem-based with actions, timing, ownership, and monitoring?
+- Medications: Are relevant med changes addressed with rationale and safety monitoring?
+- Follow-ups/pending: Are pending results, consult recommendations, and next steps documented with timing?
+- Risks/contingencies: Does the note include if/then guidance or escalation thresholds?
+- Clinical reasoning: Is there enough rationale to understand why decisions were made?
+
+SCORING RUBRIC (1–5)
+1 = Clearly not thorough (major omissions; unsafe for handoff).
+2 = Mostly not thorough (several important elements missing or vague).
+3 = Partially thorough (several relevant elements present, but noticeable gaps).
+4 = Mostly thorough (nearly complete; minor omissions only).
+5 = Fully thorough (comprehensive, organized, usable for safe ongoing care).
+
+OUTPUT FORMAT (JSON ONLY)
+{
+  "score": <integer 1-5>,
+  "explanation": "<3-6 bullet points tied to the checks above, include missing or thin areas, key areas the notes covered well>",
+}
 
 **Examples**
 
-Score 1
+**Example 1**  
 generated_query:
-"Admitted with shortness of breath. Plan: monitor."
+"Patient feels fine. Vitals okay. Plan: continue meds."
 
 output:
-{"score": 1, "reason": "Critical diagnostic and management elements are missing."}
+{"score": 1, "reason": "No problem list; no A/P per problem. No pertinent data (labs, imaging, exam) tied to issues. No rationale, no follow-ups, no contingencies → unsafe for handoff."}
 
-Score 2
+**Example 2**  
 generated_query:
-"Shortness of breath assessed; past CHF not addressed."
+"S: No new complaints.
+O: Vitals stable. Labs abnormal.
+A/P:
+- HTN: continue meds.
+- DM2: stable."
 
 output:
-{"score": 2, "reason": "Important comorbidity is omitted."}
+{"score": 2, "reason": "Labs 'abnormal' lacks specifics and interpretation.
+Hyperkalemia not addressed though it’s a key active problem.
+Plans are generic (no actions, timing, ownership, monitoring).
+Minimal rationale; no follow-ups or pending items."}
 
-Score 3
+**Example 3**  
 generated_query:
-"Pneumonia assessed, but CKD and social factors not discussed."
+"S: Mild dizziness this morning.
+O: Vitals stable. Labs: K 5.5, Cr 1.2. CXR ordered.
+A/P:
+- Hyperkalemia: hold lisinopril; recheck labs.
+- HTN: monitor BP.
+- DM2: continue metformin."
 
 output:
-{"score": 3, "reason": "Core issue addressed but secondary concerns omitted."}
+{"score": 3, "reason": "Addresses key problems and includes some pertinent data (K, Cr).
+Gaps: No timing/ownership for recheck; no monitoring parameters; no risks/contingencies; no interpretation of CXR order or expected timing.
+Usable but incomplete for handoff."}
 
-Score 4
+**Example 4**  
 generated_query:
-"Addresses pneumonia, CHF, CKD but lacks discharge planning."
+"S: Dizziness earlier, improved with fluids. No chest pain.
+O:
+  Vitals this morning stable; exam: no edema, lungs clear.
+  Labs: K 5.5, Cr 1.2; glucose 128. CXR done, prelim clear; final pending.
+A/P (problem-based):
+- Hyperkalemia: hold lisinopril now; low-K diet; repeat BMP at 16:00; monitor telemetry for arrhythmia if symptomatic.
+- HTN: monitor BP q4h; reassess need for ACE-I after repeat K; consider amlodipine if BP persistently >150/90.
+- DM2: continue metformin; POC BG q6h; target 100–180.
+- Disposition: continue observation; anticipate discharge if repeat K <5.0 and asymptomatic."
 
 output:
-{"score": 4, "reason": "Nearly complete with minor gaps."}
+{"score": 4, "reason": "Problem-based structure with specific actions and monitoring.
+Includes pertinent exam, labs, and imaging with brief interpretation.
+Has follow-up timing and preliminary disposition plan.
+Minor omissions: lacks explicit ownership (“nursing vs team”), limited contingency thresholds."}
 
-Score 5
+**Example 5**  
 generated_query:
-"Addresses pneumonia, CHF, CKD, oxygen needs, mobility, and discharge plan."
+"S: Lightheadedness this AM resolved after oral fluids; no palpitations, no dyspnea.
+O:
+  Vitals: stable; exam—no edema, JVP not elevated, lungs clear, regular rhythm.
+  Labs: K 5.5 at 07:30; repeat BMP drawn 12:00 pending; Cr 1.2; BG 128.
+  Imaging: CXR 10:20 prelim clear; final read expected by 16:00.
+A/P (problem-based with rationale):
+- Hyperkalemia (likely ACE-I related; baseline K 4.3 last week):
+    • Hold lisinopril now; low-K diet; review meds/supplements for K-sparing agents.
+    • Repeat BMP 12:00 pending → if K ≥5.5, give Kayexalate/consider Lokelma; if K ≥6.0 or ECG changes, escalate to step-down; telemetry if symptomatic.
+    • ECG ordered; monitor for arrhythmias; replete Mg if <1.8.
+- HTN:
+    • Off ACE-I temporarily; monitor BP q4h; if SBP >150 sustained, start amlodipine 5 mg daily; reassess after K normalizes.
+- DM2:
+    • Continue metformin; POC BG q6h; target 100–180; no hypoglycemia risk noted today.
+- Pending/Follow-ups:
+    • Final CXR by ~16:00; BMP result review by 12:45; team to follow up and document results; resident responsible; notify attending for K ≥6.0.
+- Disposition/Safety:
+    • Discharge after K <5.0 x 2 values, asymptomatic, and BP controlled; return precautions explained."
 
 output:
-{"score": 5, "reason": "All clinically relevant issues are comprehensively documented."}
+{"score": 5, "reason": "Comprehensive: problem-based A/P with rationale, specific actions, timing, ownership, and contingencies.
+Pertinent HPI, exam, labs, imaging clearly tied to decisions.
+Provides safe handoff and clear next steps."}
 
 **Here the actual conversation to be scored:**
 generated_query: {{note}}

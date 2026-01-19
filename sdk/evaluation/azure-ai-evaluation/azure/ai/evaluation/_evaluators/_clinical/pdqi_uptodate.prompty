@@ -22,52 +22,131 @@ outputs:
 
 system:
 
-Up-to-date assesses whether the clinical note reflects the most recent and relevant patient information, including latest labs, imaging, vitals, medications, and care plans.
 
-Rate up-to-date quality between one to five stars using the scale below.
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Up‑to‑date” (Does the note reflect inclusion of the most recent patient information?).
 
-One star: The note is clearly outdated and missing recent key events  
-Two stars: Mentions some recent data but misses important updates  
-Three stars: Mostly current but with minor omissions  
-Four stars: Nearly all recent updates included  
-Five stars: Fully reflects the most current clinical status  
+TASK
+1) Read the clinical note.
+2) (Optional) Compare with the provided reference snapshot of latest known facts.
+3) Determine whether the note includes the most recent and relevant patient information without contradictions or stale content.
+
+WHAT TO CHECK (Up‑to‑date signals)
+- Time anchoring: Are dates/times or “today/this morning/yesterday” statements present for changes, labs, imaging, meds, consults?
+- Recency of vitals/labs/imaging: Are the most recent results included, or are older values presented as current?
+- Medication reconciliation: Are current meds, starts/stops/holds/titrations accurately reflected with timing?
+- Problem status updates: Are new diagnoses/procedures/events included and older ones updated or explicitly resolved?
+- Consults/Orders/Plans: Are latest recommendations and order changes captured?
+- Contradictions: Any mismatch with more recent information (if reference is provided) or within the note itself?
+- Pending items: Are pending results described with expected timing (shows awareness of current state)?
+
+SCORING RUBRIC (1–5)
+1 = Clearly not up‑to‑date (major omissions/contradictions; stale data; no timestamps).
+2 = Mostly not up‑to‑date (some recency, but key updates missing or ambiguous; partial contradictions).
+3 = Partially up‑to‑date (several current items included; minor gaps; some timestamps missing).
+4 = Mostly up‑to‑date (nearly all recent items; clear time anchors; no contradictions; maybe one minor omission).
+5 = Fully up‑to‑date (comprehensive, explicit timing; no contradictions; incorporates all relevant latest data and pending items).
+
+OUTPUT FORMAT (JSON)
+Return only valid JSON with these fields:
+{
+  "score": <integer 1-5>,
+  "explanation": "<3-6 bullet points explaining the score tied to the checks above and include any outdated or missing text or any condradictions>",
+}
 
 **Examples**
 
-Score 1
+**Example 1**  
 generated_query:
-"Patient admitted with pneumonia. Admission labs reviewed."
+"Internal Medicine Progress Note – 12/19
+S: Patient doing fine, denies issues.
+O: Vitals stable. Labs yesterday were normal. On Lisinopril 20 mg daily.
+A/P:
+- HTN: continue lisinopril.
+- DM2: stable, continue metformin."
 
 output:
-{"score": 1, "reason": "Only admission data is referenced; no recent updates are included."}
+{"score": 1, "reason": "Stale meds: Continues lisinopril though (suppose) it was discontinued this morning for hyperkalemia (not reflected).
+No timestamps for “vitals stable” or “labs yesterday were normal” (no specifics, and uses yesterday without details).
+Missing key updates: No mention of new K value, no recent labs, no current BGs, no med holds, no consults.
+Likely contradictions with MAR and lab timeline."}
 
-Score 2
+**Example 2**  
 generated_query:
-"Labs from yesterday reviewed. Continue antibiotics."
+"Hospitalist Progress Note – 12/19
+S: Feels okay. No chest pain.
+O: Vitals stable today. Labs normal. On metformin and lisinopril.
+A/P:
+- DM2: continue metformin.
+- HTN: continue lisinopril.
+- Awaiting echo results."
 
 output:
-{"score": 2, "reason": "Somewhat recent data included, but today's labs and treatment changes are missing."}
+{"score": 2, "reason": "Mentions “today” for vitals but labs lack dates and specificity; likely omits new abnormal K (e.g., 5.7) this morning.
+Meds likely out of date (e.g., lisinopril should be held); no timing for any changes.
+Acknowledges pending echo but ignores any preliminary read or new orders.
+Some recency signals, but key updates missing → mostly not up‑to‑date."}
 
-Score 3
+**Example 3**  
 generated_query:
-"Morning labs show improving WBC, but no mention of antibiotic change today."
+"General Medicine Progress Note – 12/19 13:30
+S: Reports mild dizziness this morning.
+O:
+- Vitals 12/19 08:00: BP 138/84, HR 88, afebrile.
+- Labs 12/19 07:30: Na 138, K 5.5, Cr 1.2; A1c pending.
+- Meds: Metformin 500 mg BID; Lisinopril held (timing not specified).
+A/P:
+- HTN: lisinopril on hold; recheck K later.
+- DM2: continue metformin; monitor glucose.
+- Imaging: CXR ordered; result pending."
 
 output:
-{"score": 3, "reason": "Mostly current but misses an important same-day update."}
+{"score": 3, "reason": "Includes recent vitals and labs with timestamps and mentions lisinopril on hold.
+Minor gaps: No explicit time the hold was placed; no documentation of repeat K or plan timing (“later” is vague).
+Pending imaging noted but no expected timing or acknowledgement of any preliminary results.
+Overall partially up‑to‑date."}
 
-Score 4
+**Example 4**  
 generated_query:
-"Today's labs reviewed; antibiotics adjusted yesterday, imaging pending."
+"Internal Medicine Progress Note – 12/19 14:10
+S: Lightheaded this morning, improved after lunch.
+O:
+- Vitals (12/19 08:00): BP 138/84, HR 88, T 36.8°C, SpO2 98% RA.
+- Labs (12/19 07:30): Na 138, K 5.5, Cr 1.2. Repeat BMP ordered for 12:00 (pending at time of note).
+- Meds: Metformin 500 mg BID; Lisinopril held since 08:15 today for hyperkalemia.
+- Imaging: CXR done 12/19 10:20 – prelim: clear lungs; final read pending.
+A/P:
+- Hyperkalemia (K 5.5): lisinopril held 08:15; repeat BMP pending (expected by 15:00). Low K diet.
+- HTN: monitor BP off ACE‑I; reassess after BMP.
+- DM2: continue metformin; POC BG q6h; A1c pending (drawn 07:30)."
 
 output:
-{"score": 4, "reason": "Most recent updates included with minor omissions."}
+{"score": 4, "reason": "Clear timestamps for vitals, labs, med hold, imaging; pending items with expected timing.
+No contradictions; reflects current state accurately.
+Minor omission: Does not include the actual repeat BMP result if it posted just before note finalization → hence “mostly” up‑to‑date."}
 
-Score 5
+**Example 5**  
 generated_query:
-"Today's labs reviewed. Blood cultures finalized this afternoon; antibiotics de‑escalated per ID recommendation."
+"Hospital Medicine Progress Note – 12/19 15:20
+S: Lightheaded earlier; now resolved.
+O:
+- Vitals (12/19 14:50): BP 132/80, HR 82, T 36.7°C, SpO2 98% RA.
+- Labs:
+  * BMP (12/19 07:30): Na 138, K 5.5, Cr 1.2
+  * BMP (12/19 12:05): Na 139, K 4.8, Cr 1.1 (improved)
+- Meds: Metformin 500 mg BID; Lisinopril held since 08:15 today due to earlier hyperkalemia; will reconsider tomorrow if K remains <5.0.
+- Imaging: CXR (12/19 10:20) prelim clear; **Final read (12/19 14:40): no acute cardiopulmonary disease.**
+- Consults/Orders: No new consults. Diet: low K. POC BG q6h—latest 12/19 14:30 = 128 mg/dL.
+A/P:
+- Hyperkalemia: improved after ACE‑I hold; repeat K 4.8 at 12:05; continue hold; recheck in AM.
+- HTN: acceptable off ACE‑I; reassess after AM labs.
+- DM2: continue metformin; target BG 100–180; A1c pending tomorrow AM (lab cutoff passed today).
+- Disposition: continue monitoring; no acute issues."
 
 output:
-{"score": 5, "reason": "The note fully reflects the latest clinical data and decisions."}
+{"score": 5, "reason": "All recent data included with explicit times (latest vitals, both lab sets, final imaging read).
+Medication status clearly reconciled with timing and rationale.
+No contradictions; pending items and future timing clearly documented.
+Accurately reflects the current state at the time of writing."}
 
 **Here the actual conversation to be scored:**
 generated_query: {{note}}

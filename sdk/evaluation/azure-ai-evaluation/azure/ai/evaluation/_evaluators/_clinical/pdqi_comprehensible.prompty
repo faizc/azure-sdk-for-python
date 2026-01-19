@@ -22,29 +22,83 @@ outputs:
 
 system:
 
-Comprehensible assesses how clear and easy the note is to understand, avoiding ambiguous language or confusing phrasing.
 
-Rate the comprehensibility of the note between one to five stars using the following scale:
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Comprehensible”
+(Assesses the clarity and ease of understanding).
 
-One star: Very difficult to understand  
-Two stars: Frequent ambiguity or unclear phrasing  
-Three stars: Generally understandable with some confusion  
-Four stars: Mostly clear and easy to follow  
-Five stars: Completely clear and unambiguous  
+TASK
+Judge ONLY clarity/readability, not factual correctness or completeness.
+
+WHAT TO CHECK (Clarity/Readability)
+- Language clarity: Are sentences concise and direct? Are ideas easy to follow?
+- Abbreviations/jargon: Are necessary abbreviations defined on first use? Is jargon minimized?
+- Ambiguity: Are there vague references (“it,” “that,” “numbers ok”) or double negatives?
+- Consistent terminology: Are terms used consistently across the note?
+- Readability aids: Are bullets/short paragraphs used appropriately to improve clarity?
+- Phrasing & grammar: Are there run-on sentences, punctuation issues, or contradictions that reduce clarity?
+
+SCORING RUBRIC (1–5)
+1 = Clearly incomprehensible (meaning unclear; heavy jargon/ambiguity).
+2 = Mostly incomprehensible (recurrent confusion; several ambiguous or tangled statements).
+3 = Partially comprehensible (main points graspable but with noticeable unclear phrasing).
+4 = Mostly comprehensible (minor clarity issues only).
+5 = Fully comprehensible (plain, unambiguous, easy to read).
+
+OUTPUT FORMAT (JSON ONLY)
+{
+  "score": <1-5>,
+  "explanation": "<3–6 bullet points tied to the checks above, include phrases of what improved clarity, phrases of ambiguous/dense/confusing phrasing>",
+}
 
 **Example 1**  
 generated_query:  
-"Pt doing better-ish. Labs kinda okay. Plan TBD pending stuff."
+"dizzy ok earlier labs bad but ok, K up or not? meds hold maybe restart later if ok unless not ok, BP high low same. CXR? pending done. sugar norm abnormal. plan: see above."
 
 output:  
-{"score": 1, "reason": "The informal and vague language makes the note unclear."}
+{"score": 1, "reason": "Ambiguous ('K up or not?', 'see above'), contradictory ('norm abnormal'), fragmented grammar.
+Abbreviations without context; reader cannot infer meaning or actions."}
 
 **Example 2**  
 generated_query:  
-"Patient reports improved pain. Labs within normal limits. Plan pending MRI results."
+"Pt ok now; earlier sxs ? d/t BG; labs abnl—K probably ↑ but also stable. HTN/DM2 same. ACE-I maybe held; repeat labs later-ish. CXR done; likely fine per someone."
 
 output:  
-{"score": 5, "reason": "The note is clearly written and unambiguous."}
+{"score": 2, "reason": "Multiple ambiguous qualifiers ('probably,' 'later‑ish,' 'per someone').
+Unexpanded abbreviations (sxs, BG, abnl, ↑, ACE‑I).
+Vague references and hedging make the meaning unclear."}
+
+**Example 3**  
+generated_query:  
+"Patient had mild dizziness this morning; improved. Labs show potassium 5.5. Lisinopril on hold. CXR prelim okay. Will repeat labs later and monitor BP."
+
+output:  
+{"score": 3, "reason": "Generally understandable, but vague timing ('later') and nonspecific interpretation ('okay').
+Could benefit from more precise language and structure to avoid re-reading."}
+
+**Example 4**  
+generated_query:  
+"This morning the patient reported lightheadedness, which improved after oral fluids.
+Key data: K 5.5; creatinine 1.2; blood glucose 128. Chest X-ray prelim: clear.
+Plan: Hold lisinopril; repeat basic metabolic panel at 16:00; monitor blood pressure every 4 hours."
+
+output:  
+{"score": 4, "reason": "Clear, concise sentences; terms spelled out.
+Minor improvement possible by adding a brief clarification (e.g., 'mild hyperkalemia')."}
+
+**Example 5**  
+generated_query:  
+"The patient felt lightheaded this morning; symptoms resolved after oral fluids.
+Key results today: potassium 5.5 (mildly elevated), creatinine 1.2, blood glucose 128.
+Chest X‑ray (10:20) preliminary report: clear.
+Plan:
+- Hold lisinopril (ACE inhibitor) today due to elevated potassium.
+- Repeat basic metabolic panel at 12:00 (pending).
+- Monitor blood pressure every 4 hours; notify the team if systolic ≥150 mmHg or if symptoms recur."
+
+output:  
+{"score": 5, "reason": "Plain language, minimal jargon, and expands the key abbreviation once.
+Short, unambiguous sentences with clear intent and thresholds.
+Easy to read and understand at a glance."}
 
 **Here the actual conversation to be scored:**  
 generated_query: {{note}}  

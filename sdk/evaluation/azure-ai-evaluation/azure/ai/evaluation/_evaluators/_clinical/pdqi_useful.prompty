@@ -22,50 +22,105 @@ outputs:
 
 system:
 
-Usefulness measures how actionable and helpful the note is for patient management.
 
-One star: Not actionable  
-Two stars: Vague guidance  
-Three stars: Moderately useful  
-Four stars: Very helpful  
-Five stars: Highly actionable  
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Useful”
+(Judges the relevance and value of the information for clinical decision-making).
+
+TASK
+1) Read the clinical note.
+2) (Optional) Consider the provided reference snapshot (active problems, key results, active orders) for context.
+3) Judge ONLY usefulness for clinical decision-making.
+
+WHAT TO CHECK (Usefulness/Relevance)
+- Relevance & prioritization: Does the note focus on what matters now? Are priority problems clear?
+- Actionability: Are there concrete next steps, with timing and assigned responsibility?
+- Interpretation: Does the note interpret key data (not just list values) to guide decisions?
+- Signal-to-noise: Is irrelevant/duplicated text minimized so critical info is discoverable?
+- Handoff readiness: Are monitoring parameters, thresholds, contingencies, and disposition/next steps present?
+- Clarity: Is structure (e.g., problem-based A/P) used to make decisions straightforward?
+
+SCORING RUBRIC (1–5)
+1 = Clearly not useful (no actionable decisions; mostly noise/irrelevance).
+2 = Mostly not useful (some relevance but decision content largely missing/vague).
+3 = Partially useful (some actionable content; noticeable gaps).
+4 = Mostly useful (nearly complete, clear, actionable; minor omissions).
+5 = Fully useful (highly focused, prioritized, actionable; excellent handoff value).
+
+OUTPUT FORMAT (JSON ONLY)
+{
+  "score": <1-5>,
+  "explanation": "<3–6 bullet points tied to the checks above, content that improved decision-making, include irrelevant/redundant/unclear content and missing actions/owners/timing/thresholds>",
+}
 
 **Examples**
 
-Score 1
+**Example 1**  
 generated_query:
-"Patient stable. Continue current care."
+"Past surgeries: tonsillectomy at age 8. Family hx: grandmother with glaucoma.
+Review of systems: 12-point ROS negative except as above.
+Labs: WBC 7.3, Hgb 13.9, Plt 245, Na 136, K 4.2 (values from last week).
+Assessment/Plan: continue meds."
 
 output:
-{"score": 1, "reason": "No actionable guidance provided."}
+{"score": 1, "reason": "Irrelevant detail (remote tonsillectomy; family glaucoma) and stale labs dominate. No prioritization or interpretation; no actionable steps. Signal-to-noise extremely poor → not helpful for decisions."}
 
-Score 2
+**Example 2**  
 generated_query:
-"Monitor labs and reassess."
+"S: No new complaints.
+O: Vitals stable. Labs abnormal. CXR done.
+A/P:
+- HTN: continue meds.
+- DM2: stable; monitor."
 
 output:
-{"score": 2, "reason": "Guidance is vague and minimally useful."}
+{"score": 2, "reason": "Vague 'labs abnormal' and 'CXR done' with no interpretation. Plans are generic; no timing, thresholds, or responsibilities. Missing the active issue (hyperkalemia) and next steps → limited decision value."}
 
-Score 3
+**Example 3**  
 generated_query:
-"Continue antibiotics; reassess tomorrow."
+"S: Mild dizziness earlier.
+O: Vitals stable. Labs: K 5.5, Cr 1.2. CXR prelim clear.
+A/P:
+- Hyperkalemia: hold lisinopril; recheck BMP later today.
+- HTN: monitor BP.
+- DM2: continue metformin."
 
 output:
-{"score": 3, "reason": "Moderately helpful but limited."}
+{"score": 3, "reason": "Includes actionable steps (hold lisinopril; recheck labs) and some interpretation ('prelim clear'). Gaps: No timing, owner, thresholds, contingencies, or prioritization of tasks. Usable but requires follow‑up clarification."}
 
-Score 4
+**Example 4**  
 generated_query:
-"Switch to oral antibiotics once afebrile for 24 hours."
+"Key updates: K 5.5 this morning; dizziness improved after fluids; CXR prelim clear.
+Plan (problem-based):
+- Hyperkalemia: hold lisinopril; low-K diet; repeat BMP at 16:00; if K ≥6.0 or symptoms, notify MD and obtain ECG.
+- HTN: monitor BP q4h; if SBP >150 sustained, start amlodipine 5 mg.
+- DM2: continue metformin; POC BG q6h; target 100–180.
+- Dispo: discharge if K <5.0 and asymptomatic after repeat."
 
 output:
-{"score": 4, "reason": "Provides clear management guidance."}
+{"score": 4, "reason": "Prioritized, problem-based actions with timing and thresholds. Minimal fluff; interprets what matters now. Minor omission: responsibility/ownership not explicit; could add escalation pathway clarity."}
 
-Score 5
+**Example 5**  
 generated_query:
-"If afebrile today, transition to PO antibiotics and plan discharge tomorrow."
+"Priorities today: (1) address hyperkalemia; (2) control BP off ACE-I; (3) ensure safe discharge criteria.
+
+S: Lightheaded this AM resolved with PO fluids; no palpitations, dyspnea, or chest pain.
+O: Vitals stable; exam: lungs clear, regular rhythm, no edema. Labs: K 5.5 (07:30); repeat BMP drawn 12:00 pending; Cr 1.2; BG 128. CXR 10:20 prelim clear; final read expected ~16:00.
+
+A/P (with actions, timing, ownership, thresholds, contingencies):
+- Hyperkalemia (likely ACE-I related):
+    • ACTIONS (Resident): hold lisinopril now; review meds for K-sparing agents; low-K diet.
+    • MONITOR (Nursing): report ECG changes or symptoms; telemetry if symptomatic.
+    • TIMING: repeat BMP 12:00 pending; Resident to check by 12:45.
+    • THRESHOLDS/CONTINGENCIES: if K ≥5.5, give Lokelma; if K ≥6.0 or ECG changes, escalate to step-down and notify Attending immediately.
+- HTN:
+    • Monitor BP q4h; if SBP >150 on two checks, start amlodipine 5 mg (Resident to place order).
+- DM2:
+    • Continue metformin; POC BG q6h; target 100–180.
+- Disposition/Next Steps:
+    • Discharge when K <5.0 ×2, asymptomatic; attending to confirm after final CXR."
 
 output:
-{"score": 5, "reason": "Highly actionable and informative."}
+{"score": 5, "reason": "High signal: prioritized list, focused on decision‑making. Actionable with roles, timing, thresholds, contingencies, and disposition criteria. Enables a safe, efficient handoff with minimal ambiguity."}
 
 **Here the actual conversation to be scored:**
 generated_query: {{note}}

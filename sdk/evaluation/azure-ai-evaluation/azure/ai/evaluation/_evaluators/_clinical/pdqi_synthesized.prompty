@@ -22,29 +22,128 @@ outputs:
 
 system:
 
-Synthesized assesses whether the note integrates information into meaningful interpretations rather than listing raw data.
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Synthesized”
+(Determines the integration of information and coherent assessment/plan).
 
-Rate the level of synthesis in the note between one to five stars using the following scale:
+TASK
+Judge ONLY the integration of information into a coherent assessment and plan.
 
-One star: Purely a list of data  
-Two stars: Minimal interpretation  
-Three stars: Some synthesis present  
-Four stars: Good integration of data  
-Five stars: Excellent synthesis and clinical reasoning  
+WHAT TO CHECK (Synthesis/Integration)
+- Linkage: Do findings (S/O) clearly support the assessments and specific plans?
+- Cross-problem integration: Are interdependencies addressed (e.g., holding ACE-I for hyperkalemia and choosing an alternative antihypertensive)?
+- Prioritization & narrative: Are the most important issues surfaced first with a cohesive storyline?
+- Trends & reconciliation: Are temporal trends used, and is conflicting evidence reconciled?
+- Rationale: Are key decisions justified (why this action, why now) with safety trade-offs?
+- Pending results: Are pending items tied to future decisions with concrete if/then logic?
+
+SCORING RUBRIC (1–5)
+1 = Clearly not synthesized (lists without reasoning; plan misaligned with data).
+2 = Mostly not synthesized (minimal reasoning; weak linkage; interactions ignored).
+3 = Partially synthesized (basic linkage for main problem; gaps in integration/trends).
+4 = Mostly synthesized (coherent linkage and interdependencies; minor omissions).
+5 = Fully synthesized (integrated, prioritized, reconciled; clear rationale and contingencies).
+
+OUTPUT FORMAT (JSON ONLY)
+{
+  "score": <1-5>,
+  "explanation": "<3–6 bullet points tied to the checks above, include phrases of strong integrations/reasoning, phrases of missing links, conflicts not reconciled, or weak rationale, cross-problem, contradictions>",
+}
+
 
 **Example 1**  
 generated_query:  
-"Na 128. K 5.9. Creatinine 2.1. BNP 900."
+"S: Patient okay.
+O: Vitals stable. Labs abnormal. CXR done.
+A/P:
+- HTN: continue lisinopril.
+- Hyperkalemia: labs pending.
+- DM2: stable."
 
 output:  
-{"score": 1, "reason": "The note lists labs without interpretation or context."}
+{"score": 1, "reason": "No linkage from data → plan.
+Misalignment: continues ACE‑I despite hyperkalemia.
+No prioritization, no rationale, no cross‑problem thinking."}
 
 **Example 2**  
 generated_query:  
-"Rising creatinine and hyponatremia likely reflect worsening volume overload consistent with elevated BNP."
+"S: Dizzy earlier.
+O: K 5.5, Cr 1.2. CXR prelim clear.
+A/P:
+- Hyperkalemia: consider holding lisinopril; repeat labs later.
+- HTN: monitor BP.
+- DM2: continue metformin."
 
 output:  
-{"score": 5, "reason": "The note effectively synthesizes data into a clinical interpretation."}
+{"score": 2, "reason": "Minimal reasoning; hedged ('consider holding').
+Interactions ignored: no alternative BP therapy while ACE‑I may be held.
+No prioritization or trend reconciliation."}
+
+**Example 3**  
+generated_query:  
+"S: Lightheaded this morning; improved after fluids.
+O: K 5.5; Cr 1.2; BG 128; CXR prelim clear.
+A/P:
+- Hyperkalemia: hold lisinopril; repeat BMP at 16:00.
+- HTN: monitor BP while ACE-I held.
+- DM2: continue metformin; POC BG q6h."
+
+output:  
+{"score": 3, "reason": "Basic linkage: elevated K → hold ACE‑I; plan for repeat labs.
+Gaps: no alternative antihypertensive strategy; no rationale for choices; no contingencies (e.g., thresholds), no trend discussion."}
+
+**Example 4**  
+generated_query:  
+"S: Dizziness improved after PO fluids; no CP/SOB.
+O: K 5.5 at 07:30; Cr 1.2; BG 128. CXR 10:20 prelim clear.
+A/P (problem-based with rationale):
+- Hyperkalemia (mild; likely ACE-I related): hold lisinopril; low-K diet; repeat BMP at 16:00; ECG if symptoms.
+- HTN: while ACE-I held, monitor BP q4h; start amlodipine 5 mg if SBP >150 sustained.
+- DM2: continue metformin; POC BG q6h; targets 100–180.
+- Dispo: anticipate discharge if K <5.0 and asymptomatic after repeat."
+
+output:  
+{"score": 4, "reason": "Coherent linkage across problems (ACE‑I hold → alternative BP plan).
+Prioritized and rationalized; integrates symptoms with decisions.
+Minor omissions: no explicit reconciliation of potential other K‑raising agents; no trend comparison to baseline."}
+
+**Example 5**  
+generated_query:  
+"Summary/Priorities
+- Primary: manage mild hyperkalemia likely from ACE inhibitor; maintain BP control off ACE-I; ensure safe discharge criteria.
+
+S:
+- Lightheadedness this AM resolved with oral fluids; no palpitations or dyspnea.
+
+O:
+- Labs: K 5.5 at 07:30 (baseline 4.3 last week), Cr 1.2; BG 128.
+- Imaging: CXR 10:20 prelim clear; final expected ~16:00.
+- Exam: lungs clear, RRR, no edema.
+
+Assessment & Plan — Integrated Rationale
+1) Hyperkalemia (mild; likely ACE-I related; rising from baseline 4.3):
+   • Action: hold lisinopril now; review meds/supplements for K-sparing agents (ACE-I, ARB, spironolactone, NSAIDs).
+   • Monitoring: repeat BMP at 12:00 (pending); if K ≥5.5, give Lokelma; if K ≥6.0 or ECG changes, escalate and initiate telemetry.
+   • Rationale: ACE-I contributes; patient hemodynamically stable; aim to correct K while avoiding hypotension.
+
+2) Hypertension (needs control while ACE-I held):
+   • Action: start amlodipine 5 mg if SBP ≥150 on two checks; monitor BP q4h.
+   • Rationale: maintains BP control without worsening K; avoids diuretics today given no volume overload and stable Cr.
+
+3) Type 2 Diabetes (stable today):
+   • Action: continue metformin; POC BG q6h; target 100–180.
+   • Integration: dizziness unlikely hypoglycemia (BG 128); reassess if symptoms recur.
+
+4) Pending/Decisions:
+   • BMP (12:00) result determines reintroduction of ACE-I vs continuation off.
+   • CXR final read (~16:00) not expected to change plan but will confirm no pulmonary process.
+
+Disposition
+- Discharge once K <5.0 ×2, BP controlled off ACE-I or on alternative, and symptoms absent. Provide return precautions."
+
+output:  
+{"score": 5, "reason": "Integrated narrative with explicit priorities, rationale, and trade‑offs.
+Cross‑problem dependencies handled (ACE‑I hold ↔ alternative BP control; avoids diuretic given context).
+Uses trends (baseline K), ties pending results to decision points, and provides contingencies."}
 
 **Here the actual conversation to be scored:**  
 generated_query: {{note}}  

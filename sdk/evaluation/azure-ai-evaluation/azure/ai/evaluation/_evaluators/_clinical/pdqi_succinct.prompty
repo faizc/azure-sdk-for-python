@@ -22,29 +22,109 @@ outputs:
 
 system:
 
-Succinct assesses whether the note is concise and avoids unnecessary repetition or extraneous details.
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Succinct”
+(Evaluates conciseness and avoidance of redundancy).
 
-Rate the succinctness of the note between one to five stars using the following scale:
+TASK
+Judge ONLY the conciseness and signal-to-noise ratio of the note.
 
-One star: Excessively verbose and repetitive  
-Two stars: Significant unnecessary content  
-Three stars: Moderately concise  
-Four stars: Mostly concise with minor redundancy  
-Five stars: Clear, focused, and succinct  
+WHAT TO CHECK (Succinctness)
+- Brevity: Does the note communicate its message without unnecessary length?
+- Relevance: Is every included detail clinically meaningful for today’s decisions?
+- Redundancy: Are data repeated in multiple sections without added value?
+- Copy-paste clutter: Is there boilerplate text, outdated sections, or excessive autopopulated material?
+- Conciseness of wording: Are sentences tight and to the point?
+- Signal-to-noise: Can a clinician quickly grasp the key message without wading through clutter?
+
+SCORING RUBRIC (1–5)
+1 = Clearly not succinct (verbose, redundant, bloated).
+2 = Mostly not succinct (lots of clutter and repeated content).
+3 = Partially succinct (some redundancy or verbosity).
+4 = Mostly succinct (slight opportunities to tighten).
+5 = Fully succinct (no redundancy; highly efficient; only essential info).
+
+OUTPUT FORMAT (JSON ONLY)
+{
+  "score": <1-5>,
+  "explanation": "<3–6 bullet points referencing the checks above, include phrases or sections that were verbose or redundant and phrases demonstrating succinct communication >",
+}
 
 **Example 1**  
 generated_query:  
-"Repeatedly states the patient is stable in every paragraph with no new information."
+"Patient states that earlier this morning, at around 6:32 AM, 
+he was feeling slightly dizzy when he first got out of bed. 
+The patient notes that this dizziness felt similar to the dizziness 
+he experienced during his previous admission on 09/14 last year, 
+which he described extensively at that time and stated again today 
+(including descriptions of lightheadedness, vertigo, and feeling "a bit off"). 
+He also mentioned he skipped breakfast yesterday, which may or may not have contributed.
+
+Past medical history repeated again:
+HTN, DM2, CKD stage 2, back pain, insomnia, anxiety.
+
+Physical exam repeated from yesterday:
+Lungs clear, RRR, no edema, abdomen soft NTND.
+
+Labs:
+BMP below.
+[Same BMP values repeated again here]
+[Labs copied again from 12/12]
+
+A/P:
+- HTN stable. HTN stable. HTN stable.
+- Hyperkalemia: repeat labs as above."
 
 output:  
-{"score": 1, "reason": "The note contains excessive redundancy without added value."}
+{"score": 1, "reason": "Extremely verbose; repeats PMH, symptoms, labs, and plan multiple times.
+Includes irrelevant history and past admission detail.
+Low signal‑to‑noise → not succinct at all."}
 
 **Example 2**  
 generated_query:  
-"Summarizes key findings and plan in brief, focused statements."
+"Patient dizzy this morning, similar to past episodes which he described in detail. 
+Vitals stable, labs from this morning abnormal (K 5.5) as previously mentioned above. 
+CXR done and similar to yesterday’s chest findings. 
+Past med hx: HTN, DM2, hyperlipidemia (repeated again here).
+Plan: Hold lisinopril as said above. Repeat BMP. Monitor as said before."
 
 output:  
-{"score": 5, "reason": "The note is concise and free of unnecessary repetition."}
+{"score": 2, "reason": "Repeats past medical history.
+Repeats labs and plan (“as said before”).
+Several unnecessary descriptive statements.
+Still contains the important information, but cluttered."}
+
+**Example 3**  
+generated_query:  
+"S: Mild dizziness earlier; resolved.  
+O: Vitals stable. Labs: K 5.5, Cr 1.2. CXR prelim clear.  
+A/P: Hold lisinopril; repeat BMP later today; continue metformin; monitor BP."
+
+output:  
+{"score": 3, "reason": "Reasonably brief but still has minor redundancy (“later today” is vague; could be tighter).
+Some opportunity for conciseness (e.g., combine short statements).
+Overall fine, but not optimized."}
+
+**Example 4**  
+generated_query:  
+"Progress Note – 12/19 13:45
+S: Lightheaded this morning, resolved with fluids.
+O: K 5.5; Cr 1.2; BG 128; CXR prelim clear.
+A/P: Hold lisinopril; repeat BMP at 16:00; monitor BP q4h; continue metformin."
+
+output:  
+{"score": 4, "reason": "Clear and brief; includes only relevant data.
+Slight opportunity to tighten phrasing further (e.g., add context for hyperkalemia within same line).
+Overall efficient."}
+
+**Example 5**  
+generated_query:  
+"Key: K 5.5 (mild ↑), Cr 1.2; dizziness resolved; CXR prelim clear.
+Plan: Hold lisinopril; repeat BMP 12:00 (pending); BP q4h; continue metformin."
+
+output:  
+{"score": 5, "reason": "Maximum signal‑to‑noise: kept to the minimum required essential content.
+No repetition; no fluff; no irrelevant detail.
+Extremely efficient for clinician review."}
 
 **Here the actual conversation to be scored:**  
 generated_query: {{note}}  

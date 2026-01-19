@@ -22,6 +22,45 @@ outputs:
 
 system:
 
+
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Accurate” 
+(Assesses factual correctness and absence of errors.)
+
+TASK
+1) Read the clinical note.
+2) (Optional) Compare with the provided reference snapshot of latest known facts.
+3) Judge the note ONLY on factual accuracy:
+   - Are statements correct?
+   - Are interpretations consistent with clinical physiology?
+   - Are meds/labs/vitals/events correctly represented?
+   - Are diagnoses, procedures, and plans correctly attributed?
+   - Are cause–effect statements medically valid?
+   - Are there contradictions internally or with the reference facts?
+
+WHAT TO CHECK (Accuracy signals)
+- Correct reporting of labs/vitals/imaging values.
+- Correct medication information (dosage, indication, effects).
+- Correct diagnoses and problem associations.
+- Correct physiological reasoning (e.g., hyperkalemia causes ACE inhibitors to be held).
+- Correct causal attributions (no incorrect mechanistic statements).
+- Absence of internal contradictions.
+- Absence of contradictions with reference facts.
+- No invented or hallucinated findings.
+
+SCORING RUBRIC
+1 = Clearly inaccurate (major factual errors; unsafe mistakes).
+2 = Mostly inaccurate (multiple significant errors; several wrong interpretations).
+3 = Partially accurate (minor errors; 1 moderate inaccuracy).
+4 = Mostly accurate (almost fully correct; only trivial mistakes).
+5 = Fully accurate (all facts consistent, correct, safe).
+
+OUTPUT FORMAT (JSON ONLY)
+{
+  "score": <1-5>,
+  "explanation": "<3–6 bullet points explaining the score, describing inaccuracies or any Contradictions>",
+}
+
+
 Accuracy assesses whether the clinical note is factually correct and medically sound.
 
 One star: Multiple clear medical inaccuracies  
@@ -32,40 +71,70 @@ Five stars: Entirely accurate
 
 **Examples**
 
-Score 1
+**Example 1**  
 generated_query:
-"Type 1 diabetes managed with metformin monotherapy."
+"Progress Note 12/19
+Patient with hyperkalemia due to low potassium intake.
+Labs today: K is 3.1 which is high. 
+Continue lisinopril because it lowers potassium. 
+CXR shows pneumonia (no CXR done)."
 
 output:
-{"score": 1, "reason": "This reflects a clear medical inaccuracy."}
+{"score": 1, "reason": "Hyperkalemia described as due to low potassium intake (false).
+Says K = 3.1 is high (factually wrong).
+Claims lisinopril lowers potassium (opposite).
+Invents imaging result (CXR showing pneumonia when no CXR done).
+Multiple dangerous errors → score 1."}
 
-Score 2
+**Example 2**  
 generated_query:
-"CHF with EF 25% described as preserved systolic function."
+"Progress Note 12/19
+Labs: K 5.6 which is slightly high but not concerning. 
+Continue lisinopril; it can help bring potassium down. 
+CXR earlier today suggested mild fluid overload (CXR actually showed clear lungs)."
 
 output:
-{"score": 2, "reason": "The interpretation conflicts with the documented EF."}
+{"score": 2, "reason": "Says K 5.6 is not concerning → clinically incorrect.
+Claims lisinopril lowers potassium → false.
+Misinterprets the imaging result.
+Some facts correct (K value itself correctly stated), but most interpretations inaccurate."}
 
-Score 3
+**Example 3**  
 generated_query:
-"Hypertension listed as controlled though BP today is 160/95."
+"Progress Note 12/19
+Labs: K 5.5, mildly elevated. Lisinopril held due to this.
+CXR reported as clear. Mild dizziness attributed to slight dehydration from 'low blood sugar' (but glucose was 130)."
 
 output:
-{"score": 3, "reason": "Mostly accurate with minor inconsistency."}
+{"score": 3, "reason": "Most facts correct: K value, med hold, CXR. One moderate inaccuracy: Dizziness attributed to 'low blood sugar' even though BG 130 (not hypoglycemia). Interpretation issue → partial accuracy."}
 
-Score 4
+**Example 4**  
 generated_query:
-"EF around 40%, suggesting mildly reduced systolic function."
+"Progress Note 12/19
+Labs: K 5.5 (mild hyperkalemia). Lisinopril held due to elevated K.
+CXR prelim: clear.
+BG 130—normal range for this patient.
+Dizziness likely due to mild dehydration; encouraged PO fluids."
 
 output:
-{"score": 4, "reason": "Accurate with slight imprecision."}
+{"score": 4, "reason": "All stated facts are correct. One minor issue: 'Dizziness likely due to mild dehydration' is plausible but lacks supporting vitals/labs.No dangerous inaccuracies → mostly accurate."}
 
-Score 5
+**Example 5**  
 generated_query:
-"Heart failure with mildly reduced EF of 45%, on guideline‑directed therapy."
+"Progress Note 12/19
+Labs:
+ - K 5.5 at 07:30 (mild hyperkalemia)
+ - Repeat K 4.8 at 12:05 (improved)
+Lisinopril held at 08:15 due to hyperkalemia—appropriate ACE-I management.
+BG 130 at 12:30—within acceptable target.
+CXR (10:20) final: no acute cardiopulmonary disease.
+Dizziness earlier resolved after oral hydration; vitals stable."
 
 output:
-{"score": 5, "reason": "Fully accurate and clinically appropriate."}
+{"score": 5, "reason": "All numbers and interpretations correct.
+Appropriate medical reasoning (ACE‑I hold for K elevation).
+No contradictions.
+Fully accurate."}
 
 **Here the actual conversation to be scored:**
 generated_query: {{note}}

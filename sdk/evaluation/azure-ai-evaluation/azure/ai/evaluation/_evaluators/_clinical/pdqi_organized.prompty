@@ -22,50 +22,137 @@ outputs:
 
 system:
 
-Organization assesses clarity of structure and logical flow.
 
-One star: Disorganized  
-Two stars: Poor structure  
-Three stars: Adequately organized  
-Four stars: Well organized  
-Five stars: Excellent structure  
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Organized”
+(Measures the logical structure and arrangement of the note).
+
+TASK
+1) Read the note’s structure and layout.
+2) Judge ONLY the organization (not factual correctness, completeness, or recency).
+
+WHAT TO CHECK (Organization/Structure)
+- Sectioning: Are standard sections (HPI/Subjective, Objective, Assessment & Plan) or equivalent clearly labeled?
+- Problem-based A/P: Are problems identified and plans grouped under them with numbering or bulleting?
+- Ordering & hierarchy: Are the most important issues surfaced early? Do timestamps and narrative flow logically?
+- Formatting consistency: Are headings, bullets, labels, and indentation consistent and readable?
+- Separation of content: Is data in the right place (e.g., labs in Objective, interpretations in Assessment)?
+- Cross-referencing: Are references to other sections clear (e.g., “see Labs” or “see Plan #1”)?
+- Signal clarity: Is critical information easy to locate without wading through clutter or duplication?
+
+SCORING RUBRIC (1–5)
+1 = Clearly disorganized.
+2 = Mostly disorganized.
+3 = Partially organized.
+4 = Mostly organized.
+5 = Fully organized (exemplary clarity and structure).
+
+OUTPUT FORMAT (JSON ONLY)
+{
+  "score": <1-5>,
+  "explanation": "<3–6 bullet points tied to the checks above, include things done well, issues or confusions, concrete re-organization tips>",
+}
 
 **Examples**
 
-Score 1
+**Example 1**  
 generated_query:
-"Labs, history, and plan mixed randomly."
+"Patient dizzy earlier continue meds potassium up yesterday cxr done labs normal
+Plan: metformin, ACEI ok. The patient okay. Dizziness probably dehydration. CXR later earlier.
+Vitals later normal. A/P: DM2 stable. HTN stable. K high low today. Blood sugar normal abnormal."
 
 output:
-{"score": 1, "reason": "The note lacks structure and is difficult to follow."}
+{"score": 1, "reason": "No headings, no sections, ideas mashed together. Plan mixed with history and objective; contradictory fragments interleaved. No logical ordering or grouping → unreadable."}
 
-Score 2
+**Example 2**  
 generated_query:
-"Some headers present, information scattered."
+"Subjective: patient okay.
+Objective: labs abnormal, vitals stable, CXR done.
+Assessment: HTN, DM2, hyperkalemia, issues listed.
+Plan: monitor; continue meds; repeat labs.
+Additional comments: potassium up earlier; images pending; BP needs control."
 
 output:
-{"score": 2, "reason": "Organization exists but is weak."}
+{"score": 2, "reason": "Headings exist but details are scattered (e.g., key context in 'Additional comments').
+Non-problem-based A/P; generic actions not aligned per problem.
+Important facts hidden in vague phrases; flow confusing."}
 
-Score 3
+**Example 3**  
 generated_query:
-"SOAP format used with minor repetition."
+"Subjective: dizziness this morning, improved with fluids.
+Objective:
+  - Vitals stable.
+  - Labs: K 5.5, Cr 1.2.
+  - CXR done, prelim clear.
+Assessment:
+  - Hyperkalemia, HTN, DM2.
+Plan:
+  - Hold lisinopril.
+  - Recheck labs later.
+  - Continue metformin; monitor BP."
 
 output:
-{"score": 3, "reason": "Adequately organized."}
+{"score": 3, "reason": "Clear S/O/A/P sections, but Assessment not problem-structured (lists diagnoses without linkage).
+Plan not grouped per problem, timing unspecified; some items belong together.
+Overall readable, yet organizational linkage is weak."}
 
-Score 4
+**Example 4**  
 generated_query:
-"Clear headers and problem‑based assessments."
+"Subjective: Lightheaded earlier; better after PO fluids. No CP/SOB.
+Objective:
+  - Vitals stable; exam: lungs clear, RRR, no edema.
+  - Labs: K 5.5, Cr 1.2; BG 128.
+  - Imaging: CXR 10:20 prelim clear.
+Assessment & Plan (problem-based):
+  1) Hyperkalemia:
+     - Assessment: mild, likely ACE-I related.
+     - Plan: hold lisinopril; low-K diet; repeat BMP at 16:00.
+  2) HTN:
+     - Assessment: acceptable off ACE-I.
+     - Plan: monitor BP q4h; consider amlodipine if SBP >150.
+  3) DM2:
+     - Assessment: controlled.
+     - Plan: continue metformin; POC BG q6h; target 100–180."
 
 output:
-{"score": 4, "reason": "Well structured with minor issues."}
+{"score": 4, "reason": "Consistent headings, problem-based A/P with numbering, logical ordering of issues.
+Minimal clutter; easy to follow.
+Could be improved by adding Key Updates at top or explicit ownership/labels."}
 
-Score 5
+**Example 5**  
 generated_query:
-"Problem‑oriented SOAP note with clear progression."
+"Key Updates Today
+- Priority: address hyperkalemia; BP management off ACE-I; discharge criteria.
+- K 5.5 at 07:30; repeat BMP drawn 12:00 pending. CXR prelim clear.
+
+Subjective (S)
+- Lightheaded AM, resolved after PO fluids. No CP/SOB/palpitations.
+
+Objective (O)
+- Vitals stable. Exam: lungs clear, RRR, no edema.
+- Labs: K 5.5 (07:30), Cr 1.2, BG 128.
+- Imaging: CXR 10:20 prelim clear; final by ~16:00.
+
+Assessment & Plan (A/P) — Problem-Based
+1) Hyperkalemia
+   Assessment: Mild; likely ACE-I related.
+   Plan:
+     • Hold lisinopril now; low-K diet.
+     • Repeat BMP 12:00 pending → check by 12:45 (Resident).
+     • If K ≥5.5, give Lokelma; if K ≥6.0 or ECG changes, escalate and notify Attending.
+2) Hypertension
+   Assessment: acceptable off ACE-I.
+   Plan: monitor BP q4h; if SBP >150 on two checks, start amlodipine 5 mg.
+3) Type 2 Diabetes
+   Assessment: controlled today.
+   Plan: continue metformin; POC BG q6h; target 100–180.
+
+Disposition / Next Steps
+- Discharge when K <5.0 ×2 and asymptomatic; confirm after final CXR."
 
 output:
-{"score": 5, "reason": "Exceptional organization improves readability."}
+{"score": 5, "reason": "Exemplary structure: summary block → S/O → numbered problem‑based A/P → Disposition.
+Clear hierarchy, labels, grouping, and cross‑referencing.
+Critical info surfaced early; consistent formatting and clean flow."}
 
 **Here the actual conversation to be scored:**
 generated_query: {{note}}

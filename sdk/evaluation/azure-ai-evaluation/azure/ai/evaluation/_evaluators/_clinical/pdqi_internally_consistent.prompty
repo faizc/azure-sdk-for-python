@@ -22,29 +22,106 @@ outputs:
 
 system:
 
-Internally Consistent assesses whether different sections of the note align with each other and do not contain contradictions.
+You are evaluating a clinical note solely on the PDQI‑9 dimension “Internally Consistent”
+(Checks for contradictions within the note).
 
-Rate the internal consistency of the note between one to five stars using the following scale:
+TASK
+Judge ONLY whether the note contains internal contradictions or logical conflicts.
 
-One star: Multiple internal contradictions  
-Two stars: Several inconsistencies  
-Three stars: Minor contradictions  
-Four stars: Mostly consistent  
-Five stars: Fully consistent across all sections  
+WHAT TO CHECK (Internal Consistency)
+- Symptoms & Exam: Any contradictions (e.g., “no chest pain” vs. “treating chest pain”)?
+- Vitals/Labs/Imaging: Do reported values align with interpretations and subsequent statements?
+- Medications: Are med lists/orders consistent with the plan (continue vs. hold vs. stop)?
+- Problem status: Are problem statements consistent across sections (e.g., “resolved” vs. active in plan)?
+- Timeline: Do “pending” vs. “resulted” statements align? Are dates/times consistent within the note?
+- Cross-references: Do references to other sections match the details in those sections?
+
+SCORING RUBRIC (1–5)
+1 = Clearly inconsistent (multiple contradictions; unsafe).
+2 = Mostly inconsistent (≥1 major or several moderate conflicts).
+3 = Partially consistent (minor inconsistencies; unlikely to change care).
+4 = Mostly consistent (one minor ambiguity only).
+5 = Fully consistent (no contradictions anywhere).
+
+OUTPUT FORMAT (JSON ONLY)
+{
+  "score": <1-5>,
+  "explanation": "<3–6 bullet points tied to the checks above, include phrases of specific conflicts, phrases that could be read in conflicting ways>",
+}
 
 **Example 1**  
 generated_query:  
-"HPI notes chest pain overnight, but assessment states patient denies chest pain."
+"S: No dizziness today; denies palpitations.
+O: K 5.6 this morning.
+Meds: Continue lisinopril 20 mg daily.
+A/P:
+- Hyperkalemia: hold lisinopril due to high K; repeat BMP.
+- Dizziness: occurred this morning, likely dehydration."
 
 output:  
-{"score": 1, "reason": "Key clinical details contradict each other."}
+{"score": 1, "reason": "Medication conflict: 'Continue lisinopril' (Meds) vs. 'hold lisinopril' (A/P).
+Symptom conflict: Subjective denies dizziness vs. A/P says 'occurred this morning.'
+Multiple direct contradictions → clearly inconsistent."}
 
 **Example 2**  
 generated_query:  
-"HPI, assessment, and plan consistently describe resolved chest pain."
+"S: Dizziness earlier; now improved. No chest pain.
+O: K 5.5 at 07:30; repeat BMP done at 12:00 (pending).
+Labs: Repeat BMP 12:00 shows K 4.8.
+A/P:
+- Hyperkalemia: recheck K later today; continue lisinopril."
 
 output:  
-{"score": 5, "reason": "All sections align without contradiction."}
+{"score": 2, "reason": "Timeline conflict: 'Repeat BMP 12:00 pending' vs. 'Repeat BMP shows K 4.8' (both in same note).
+Plan conflict with data: continuing lisinopril despite earlier K 5.5 without an explanation.
+Several moderate inconsistencies → mostly inconsistent."}
+
+**Example 3**  
+generated_query:  
+"S: Lightheaded this morning; improved after fluids.
+O: K 5.5; Cr 1.2. CXR prelim clear.
+Meds: Lisinopril on hold.
+A/P:
+- Hyperkalemia: hold lisinopril; repeat BMP later.
+- HTN: monitor BP.
+- DM2: continue metformin."
+
+output:  
+{"score": 3, "reason": "Generally consistent across sections.
+Minor ambiguity: 'repeat BMP later' without clarifying whether the 'hold' is immediate or already done (Meds says 'on hold,' A/P says 'hold now'). Not a direct contradiction but slightly unclear.
+Minor, non‑critical inconsistency → partially consistent."}
+
+**Example 4**  
+generated_query:  
+"S: Dizziness earlier; resolved now.
+O: K 5.5 at 07:30; Cr 1.2; BG 128. CXR 10:20 prelim clear.
+Meds: Lisinopril held since 08:15.
+A/P:
+- Hyperkalemia: continue ACE-I hold; repeat BMP at 16:00.
+- HTN: monitor BP; start amlodipine if SBP >150 sustained.
+- DM2: continue metformin."
+
+output:  
+{"score": 4, "reason": "Alignment between Meds and Plan; timeline coherent.
+Minor ambiguity: 'monitor BP; start amlodipine if SBP >150 sustained' (doesn’t define 'sustained' or number of rechecks). Not a contradiction—just slightly vague.
+Mostly consistent."}
+
+**Example 5**  
+generated_query:  
+"S: Lightheaded this morning; resolved. No chest pain, palpitations, or dyspnea.
+O:
+  - Labs: K 5.5 at 07:30; repeat BMP drawn 12:00 pending.
+  - Imaging: CXR 10:20 prelim clear.
+Meds: Lisinopril held at 08:15 due to hyperkalemia.
+A/P:
+- Hyperkalemia: continue ACE-I hold; review meds for K-raising agents; check BMP result at 12:45; if K ≥5.5, give Lokelma; if K ≥6.0 or ECG changes, escalate.
+- HTN: if SBP ≥150 on two checks, start amlodipine 5 mg; monitor q4h.
+- DM2: continue metformin; POC BG q6h; target 100–180."
+
+output:  
+{"score": 5, "reason": "No contradictions: Subjective, Objective, Meds, and A/P are fully aligned.
+Timeline statements ('drawn,' 'pending,' 'check time') are coherent.
+Plans match the documented problems and evidence."}
 
 **Here the actual conversation to be scored:**  
 generated_query: {{note}}  
