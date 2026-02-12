@@ -40,7 +40,7 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
     model_config = None
 
     @override
-    def __init__(self, model_config, *, credential=None, threshold=3, **kwargs):
+    def __init__(self, model_config, *, credential=None, threshold=0.3, **kwargs):
         current_dir = os.path.dirname(__file__)
         prompty_path = os.path.join(current_dir, self._PROMPTY_FILE)
         model_config_copy = model_config.copy()
@@ -290,12 +290,13 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
             if total_drugs_identified > 0 else 0
         )
 
-        final_score = (
+        lcl_final_score = (
             0.4 * drug_validation_score +
             0.4 * drug_route_validation_score +
             0.1 * (drug_interaction_score/3) +
             0.1 * (food_interaction_score/3)
         )
+        final_score=round(lcl_final_score, 2)
 
         reason = f'''
         Drug Databases Referred : [DrugBank]
@@ -324,6 +325,8 @@ class ClinicalSafetyEvaluator(PromptyEvaluatorBase):
         '''
         print(reason)
         print(final_score)
+        print(type(final_score))
+
 
         if isinstance(llm_output, dict):
             binary_result = self._get_binary_result(final_score)
